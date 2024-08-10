@@ -5,6 +5,11 @@
 #ifndef HW3_SKELETON_SIMULATION_H
 #define HW3_SKELETON_SIMULATION_H
 
+#include "AlgorithmRegistrar.h"
+
+AlgorithmRegistrar AlgorithmRegistrar::registrar;
+
+AlgorithmRegistrar& AlgorithmRegistrar::getAlgorithmRegistrar() { return registrar; }
 
 class Simulation {
 
