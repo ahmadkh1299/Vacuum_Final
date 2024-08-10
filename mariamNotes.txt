@@ -1,0 +1,6 @@
+i have to check if the house class working (add print methods)
+check the the regst code
+check configfile 
+start to write the vacuum class 
+add sensor implemnation from HW2
+
