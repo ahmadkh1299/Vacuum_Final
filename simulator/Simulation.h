@@ -1,19 +1,30 @@
-//
-// Created by 97250 on 8/8/2024.
-//
+#ifndef SIMULATION_H
+#define SIMULATION_H
 
-#ifndef HW3_SKELETON_SIMULATION_H
-#define HW3_SKELETON_SIMULATION_H
-
-#include "AlgorithmRegistrar.h"
-
-AlgorithmRegistrar AlgorithmRegistrar::registrar;
-
-AlgorithmRegistrar& AlgorithmRegistrar::getAlgorithmRegistrar() { return registrar; }
+#include <string>
+#include <vector>
+#include <memory>
+#include "House.h"
+#include "AbstractAlgorithm.h"
 
 class Simulation {
+public:
+    Simulation();
+    void loadHouse(const std::string& housePath);
+    void loadAlgorithms(const std::string& algoPath);
+    void run();
+    void generateSummary() const;
 
+private:
+    std::vector<std::unique_ptr<House>> houses;
+    std::vector<std::unique_ptr<AbstractAlgorithm>> algorithms;
+    int maxSteps;
+    int numThreads;
+
+    void runSimulation(House& house, AbstractAlgorithm& algorithm);
+    void writeOutputFile(const std::string& houseName, const std::string& algoName,
+                         int numSteps, int dirtLeft, bool finished, bool inDock, int score) const;
+    int calculateScore(int numSteps, int dirtLeft, bool finished, bool inDock) const;
 };
 
-
-#endif //HW3_SKELETON_SIMULATION_H
+#endif // SIMULATION_H
