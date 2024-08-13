@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 House::House(const std::vector<std::string>& layout_v)
-        : dockingStationRow(-1), dockingStationCol(-1), total_dirt(0) {
+        : dockingStation({-1, -1}), total_dirt(0) {
     std::vector<std::string> padded_layout = layout_v;
     addWallsPadding(padded_layout);
     initializeMatrix(padded_layout);
@@ -47,8 +47,7 @@ void House::initializeMatrix(const std::vector<std::string>& layout_v) {
                 house_matrix[i][j] = cell - '0';
                 total_dirt += house_matrix[i][j];
             } else if (cell == 'D') {
-                dockingStationRow = i;
-                dockingStationCol = j;
+                dockingStation = {i, j};
                 house_matrix[i][j] = -20;
             } else {
                 house_matrix[i][j] = 0;
@@ -58,7 +57,7 @@ void House::initializeMatrix(const std::vector<std::string>& layout_v) {
 }
 
 void House::findDockingStation() {
-    if (dockingStationRow == -1 || dockingStationCol == -1) {
+    if (dockingStation.r == -1 || dockingStation.c == -1) {
         throw std::runtime_error("Docking station 'D' not found in layout");
     }
 }
@@ -74,44 +73,51 @@ void House::updateDirtCount() {
     }
 }
 
-int House::getRows() const { return rows; }
-int House::getCols() const { return cols; }
-int House::getDockingStationRow() const { return dockingStationRow; }
-int House::getDockingStationCol() const { return dockingStationCol; }
+int House::getRows() const {
+    return rows;
+}
 
-int House::getCell(int row, int col) const {
-    if (row < 0 || row >= rows || col < 0 || col >= cols) {
+int House::getCols() const {
+    return cols;
+}
+
+Position House::getDockingStation() const {
+    return dockingStation;
+}
+
+int House::getCell(const Position& pos) const {
+    if (pos.r < 0 || pos.r >= rows || pos.c < 0 || pos.c >= cols) {
         return -1; // Boundary walls represented by -1
     }
-    return house_matrix[row][col];
+    return house_matrix[pos.r][pos.c];
 }
 
-bool House::isWall(int row, int col) const {
-    return getCell(row, col) == -1;
+bool House::isWall(const Position& pos) const {
+    return getCell(pos) == -1;
 }
 
-int House::getDirtLevel(int row, int col) const {
-    int cell = getCell(row, col);
+int House::getDirtLevel(const Position& pos) const {
+    int cell = getCell(pos);
     return (cell > 0 && cell < 20) ? cell : 0;
 }
 
-void House::cleanCell(int row, int col) {
-    if (row >= 0 && row < rows && col >= 0 && col < cols) {
-        if (house_matrix[row][col] > 0 && house_matrix[row][col] < 20) {
-            house_matrix[row][col]--;
+void House::cleanCell(const Position& pos) {
+    if (pos.r >= 0 && pos.r < rows && pos.c >= 0 && pos.c < cols) {
+        if (house_matrix[pos.r][pos.c] > 0 && house_matrix[pos.r][pos.c] < 20) {
+            house_matrix[pos.r][pos.c]--;
             total_dirt--;
-            std::cout << "Cleaned cell at (" << row << ", " << col
-                      << "). New dirt level: " << house_matrix[row][col] << std::endl;
+            std::cout << "Cleaned cell at (" << pos.r << ", " << pos.c
+                      << "). New dirt level: " << house_matrix[pos.r][pos.c] << std::endl;
         }
     }
 }
 
-bool House::isValidPosition(int row, int col) const {
-    return row >= 0 && row < rows && col >= 0 && col < cols && !isWall(row, col);
+bool House::isValidPosition(const Position& pos) const {
+    return pos.r >= 0 && pos.r < rows && pos.c >= 0 && pos.c < cols && !isWall(pos);
 }
 
-bool House::isInDock(int row, int col) const {
-    return row == dockingStationRow && col == dockingStationCol;
+bool House::isInDock(const Position& pos) const {
+    return pos.r == dockingStation.r && pos.c == dockingStation.c;
 }
 
 int House::getTotalDirt() const {
@@ -124,7 +130,7 @@ bool House::isHouseClean() const {
 
 void House::printMatrix() const {
     std::cout << "House matrix:\n";
-    std::cout << "Docking station: (" << dockingStationRow << ", " << dockingStationCol << ")\n";
+    std::cout << "Docking station: (" << dockingStation.r << ", " << dockingStation.c << ")\n";
 
     for (const auto& row : house_matrix) {
         for (int cell : row) {
@@ -138,4 +144,27 @@ void House::printMatrix() const {
         }
         std::cout << '\n';
     }
+}
+
+void House::printLayout() const {
+    std::cout << "House Layout:" << std::endl;
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            switch(house_matrix[i][j]) {
+                case 0: std::cout << ' '; break; // Empty
+                case -1: std::cout << 'W'; break; // Wall
+                case -20: std::cout << 'D'; break; // Docking station
+                default: std::cout << house_matrix[i][j]; // Dirt level
+            }
+        }
+        std::cout << std::endl;
+    }
+}
+
+void House::printInfo() const {
+    std::cout << "House Info:" << std::endl;
+    std::cout << "Rows: " << rows << std::endl;
+    std::cout << "Columns: " << cols << std::endl;
+    std::cout << "Docking Station: (" << dockingStation.r << ", " << dockingStation.c << ")" << std::endl;
+    std::cout << "Total Dirt: " << total_dirt << std::endl;
 }
