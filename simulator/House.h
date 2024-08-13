@@ -1,6 +1,7 @@
 #ifndef HOUSE_H
 #define HOUSE_H
 
+#include "../common/states.h"
 #include <vector>
 #include <string>
 
@@ -11,28 +12,28 @@ public:
     // Getters
     int getRows() const;
     int getCols() const;
-    int getDockingStationRow() const;
-    int getDockingStationCol() const;
-    int getCell(int row, int col) const;
+    Position getDockingStation() const;
+    int getCell(const Position& pos) const;
 
     // Methods for assignment 3
-    bool isWall(int row, int col) const;
-    int getDirtLevel(int row, int col) const;
-    void cleanCell(int row, int col);
-    bool isValidPosition(int row, int col) const;
-    bool isInDock(int row, int col) const;
+    bool isWall(const Position& pos) const;
+    int getDirtLevel(const Position& pos) const;
+    void cleanCell(const Position& pos);
+    bool isValidPosition(const Position& pos) const;
+    bool isInDock(const Position& pos) const;
 
     // Utility methods
     int getTotalDirt() const;
     bool isHouseClean() const;
     void printMatrix() const;
+    void printInfo() const;
+    void printLayout() const;
 
 private:
     std::vector<std::vector<int>> house_matrix;
     int rows;
     int cols;
-    int dockingStationRow;
-    int dockingStationCol;
+    Position dockingStation;
     int total_dirt;
 
     void addWallsPadding(std::vector<std::string>& layout_v);
