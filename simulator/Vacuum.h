@@ -1,38 +1,40 @@
 #ifndef VACUUM_H
 #define VACUUM_H
 
-#include "../common/enums.h"
-#include "House.h"
+#include "../common/states.h" // Includes Position and Step definitions
+#include "../common/enums.h" // Includes Position and Step definitions
 
 class Vacuum {
 public:
-    Vacuum(House& house, int max_steps, int max_battery);
+    // Default constructor
+    Vacuum();
 
-    // Movement and state methods
-    bool move(Step step);
-    bool isFinished() const;
-    bool isDead() const;
-    int getScore() const;
-    int getStepsTaken() const;
-    bool isInDock() const;
+    // Destructor
+    ~Vacuum();
 
-    // Methods to get sensor information (now using House directly)
-    bool isWall(Direction d) const;
-    int dirtLevel() const;
-    std::size_t getBatteryState() const;
+    // Initializes the vacuum with a given battery level and starting position
+    void init(double battery, Position position);
+
+    // Returns the maximum battery capacity
+    double maxBattery() const;
+
+    // Returns the current battery level
+    double battery() const;
+
+    // Moves the vacuum in the specified direction, consuming battery
+    void step(Step stepDirection);
+
+    // Charges the vacuum's battery
+    void charge();
+
+    // Returns the current position of the vacuum
+    Position getPosition() const;
 
 private:
-    House& house;
-    int row, col;
-    int steps_taken;
-    int battery_left;
-    int max_steps;
-    int max_battery;
-    bool in_dock;
-    bool finished;
-
-    void updateScore();
+    double curr_battery;   // Current battery level
+    double MaxBattery;     // Maximum battery capacity
+    int stepsto_charge;    // Number of steps required for a full charge
+    Position curr_pos;     // Current position of the vacuum
 };
 
-
-#endif //HW3_SKELETON_VACUUM_H
+#endif // VACUUM_H
