@@ -1,4 +1,4 @@
-#include "common/AlgorithmRegistrar.h"
+#include "../common/AlgorithmRegistrar.h"
 
 AlgorithmRegistrar AlgorithmRegistrar::registrar;
 

@@ -14,6 +14,7 @@
 class SensorImpl : public WallsSensor, public DirtSensor, public BatteryMeter {
 public:
     SensorImpl(const House& house, int maxBattery);
+    ~SensorImpl() = default;
 
     // WallsSensor interface
     bool isWall(Direction d) const override;

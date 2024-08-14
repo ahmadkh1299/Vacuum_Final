@@ -10,6 +10,7 @@
 class Simulation {
 public:
     Simulation();
+    ~Simulation() = default;
     void loadHouse(const std::string& housePath);
     void loadAlgorithms(const std::string& algoPath);
     void run();

@@ -4,12 +4,12 @@
 
 #include "AlgorithmAstar212346076A.h"
 #include "AlgorithmAstar212346076A.h"
-#include "../common/AlgorithmRegistration.h"
+#include "../algorithm/AlgorithmRegistration.h"
 #include <cmath>
 #include <algorithm>
 #include <limits>
 
-REGISTER_ALGORITHM(AlgorithmAstar212346076A)
+
 
 AlgorithmAstar212346076A::AlgorithmAstar212346076A()
         : maxSteps(0), sensor(nullptr), currentRow(0), currentCol(0),
@@ -222,3 +222,4 @@ bool AlgorithmAstar212346076A::isFullyExplored() const {
     }
     return true;
 }
+REGISTER_ALGORITHM(AlgorithmAstar212346076A)

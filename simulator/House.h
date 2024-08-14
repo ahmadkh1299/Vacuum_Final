@@ -8,7 +8,7 @@
 class House {
 public:
     House(const std::vector<std::string>& layout_v);
-
+    ~House() = default;
     // Getters
     int getRows() const;
     int getCols() const;

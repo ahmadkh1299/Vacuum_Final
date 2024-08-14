@@ -7,7 +7,8 @@
 
 
 class AlgorithmsBFS {
-
+    AlgorithmsBFS();
+    ~AlgorithmsBFS() = default;
 };
 
 

@@ -7,7 +7,9 @@
 
 
 class AlgorithmDFS {
-
+public:
+    AlgorithmDFS();
+    virtual ~AlgorithmDFS() = default;
 };
 
 

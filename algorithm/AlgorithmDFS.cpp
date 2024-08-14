@@ -3,8 +3,8 @@
 //
 
 #include "AlgorithmDFS.h"
-#include "AlgorithmRegistration.h"
+#include "../algorithm/AlgorithmRegistration.h"
 
 // Your algorithm implementation
 
-REGISTER_ALGORITHM(SimpleAlgorithm)
+:REGISTER_ALGORITHM(AlgorithmDFS)
