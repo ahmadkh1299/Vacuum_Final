@@ -104,10 +104,11 @@ std::stack<Direction> Explorer::getShortestPath_A(std::pair<int, int> src, std::
     while (!pq.empty()) {
         Position t = pq.top();
         pq.pop();
-        if (t.r == dst.first && t.c == dst.second) {
+        if (!search && t.r == dst.first && t.c == dst.second) {
             found = true;
             break;
         }
+
         for (const auto& v : getNeighbors({t.r, t.c})) {
             Position neighbor = {v.first, v.second};
             if (visited.count(neighbor) == 0) {
@@ -119,9 +120,15 @@ std::stack<Direction> Explorer::getShortestPath_A(std::pair<int, int> src, std::
                 parent[neighbor] = t;
             }
         }
+        // Check for search mode conditions
+        if (search && ((mapped_areas_.count(t) != 0 && mapped_areas_[t] > 0) || unexplored_areas_.count(t) != 0)) {
+            found = true;
+            break;
+        }
+
     }
     if (found) {
-        Position v = {dst.first, dst.second};
+        Position v = search ? pq.top() : Position{dst.first, dst.second};
         while (v != Position{src.first, src.second}) {
             path.push(PositionUtils::findDirection(parent[v], v));
             v = parent[v];
