@@ -30,7 +30,15 @@ public:
     // Returns the current position of the vacuum
     Position getPosition() const;
 
+    // Returns the current state of the vacuum
+    State getState() const;
+
+    // Sets the state of the vacuum
+    void setState(State newState);
+
+
 private:
+    State curr_state;      // Current state of the vacuum
     double curr_battery;   // Current battery level
     double MaxBattery;     // Maximum battery capacity
     int stepsto_charge;    // Number of steps required for a full charge

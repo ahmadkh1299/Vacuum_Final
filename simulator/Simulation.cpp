@@ -4,8 +4,12 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <condition_variable>
+#include <dlfcn.h>
 #include "ConfigReader.h"
 #include "AlgorithmRegistrar.h"
+#include "Explorer.h"
+#include "SensorImpl.h"
 
 namespace fs = std::filesystem;
 
@@ -18,8 +22,10 @@ void Simulation::loadHouse(const std::string& housePath) {
                 ConfigReader config(entry.path().string());
                 houses.push_back(std::make_unique<House>(config.getLayout()));
                 maxSteps = std::max(maxSteps, config.getMaxSteps());
+                maxBattery = config.getMaxBattery();
             } catch (const std::exception& e) {
-                std::cerr << "Error loading house file " << entry.path() << ": " << e.what() << std::endl;
+                std::ofstream errorFile(entry.path().stem().string() + ".error");
+                errorFile << "Error loading house file " << entry.path() << ": " << e.what() << std::endl;
             }
         }
     }
@@ -29,9 +35,18 @@ void Simulation::loadAlgorithms(const std::string& algoPath) {
     AlgorithmRegistrar& registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
     for (const auto& entry : fs::directory_iterator(algoPath)) {
         if (entry.path().extension() == ".so") {
-            // Load shared library and register algorithm
-            // This part depends on your specific implementation of dynamic loading
-            // You might need to use dlopen, dlsym, etc.
+            try {
+                // Load shared library and register algorithm
+                void* handle = dlopen(entry.path().c_str(), RTLD_NOW);
+                if (!handle) {
+                    throw std::runtime_error(dlerror());
+                }
+                // ...
+                dlclose(handle);
+            } catch (const std::exception& e) {
+                std::ofstream errorFile(entry.path().stem().string() + ".error");
+                errorFile << "Error loading algorithm file " << entry.path() << ": " << e.what() << std::endl;
+            }
         }
     }
 
@@ -47,7 +62,23 @@ void Simulation::run() {
     for (const auto& house : houses) {
         for (const auto& algo : algorithms) {
             threads.emplace_back([this, &house, &algo, &outputMutex]() {
-                runSimulation(*house, *algo);
+                std::condition_variable cv;
+                std::mutex cv_m;
+                bool finished = false;
+                std::thread t([&]() {
+                    runSimulation(*house, *algo);
+                    finished = true;
+                    cv.notify_one();
+                });
+
+                std::unique_lock<std::mutex> lk(cv_m);
+                if(cv.wait_for(lk, std::chrono::milliseconds(maxSteps), [&]{ return finished; })) {
+                    t.join();
+                } else {
+                    // Handle timeout
+                    // ...
+                    t.detach();
+                }
             });
 
             if (threads.size() >= numThreads) {
@@ -64,43 +95,37 @@ void Simulation::run() {
     }
 }
 
+
 void Simulation::runSimulation(House& house, AbstractAlgorithm& algorithm) {
-    int steps = 0;
-    int battery = maxSteps; // Assuming maxSteps is also max battery
-    int currentRow = house.getDockingStationRow();
-    int currentCol = house.getDockingStationCol();
+    Vacuum vacuum = Vacuum();
+    vacuum.init(maxBattery, house.getDockingStation());
+    Explorer explorer;
+
+    SensorImpl sensors(house, maxSteps);
+    algorithm.setWallsSensor(sensors);
+    algorithm.setDirtSensor(sensors);
+    algorithm.setBatteryMeter(sensors);
+    algorithm.setMaxSteps(maxSteps);
+
+    int stepsTaken = 0;
     bool finished = false;
 
-    algorithm.setMaxSteps(maxSteps);
-    // Set other sensors...
-
-    while (steps < maxSteps && !finished && battery > 0) {
+/*    while (stepsTaken < maxSteps && !finished) {
+        // Get the next Step from the algorithm
         Step step = algorithm.nextStep();
+        vacuum.step(step);
+        stepsTaken++;
+        Position currPos = vacuum.getPosition();
+        if(explorer.explored(currPos)){
+            explorer.updateDirtAndClean(currPos, house.getDirtLevel(currPos));
 
-        if (step == Step::Finish) {
-            finished = true;
-            break;
-        }
-
-        // Update position based on step
-        // Update battery
-        // Clean current cell if dirty
-        // Update steps
-
-        if (house.isInDock(currentRow, currentCol)) {
-            battery = std::min(battery + maxSteps / 20, maxSteps);
-        }
-    }
-
-    bool inDock = house.isInDock(currentRow, currentCol);
-    int dirtLeft = house.getTotalDirt();
-    int score = calculateScore(steps, dirtLeft, finished, inDock);
-
-    writeOutputFile(house.getName(), algorithm.getName(), steps, dirtLeft, finished, inDock, score);
+        sensors.updatePosition(vacuum.getPosition().r, vacuum.getPosition().c);
+        sensors.useBattery();
+    }*/
 }
 
 void Simulation::writeOutputFile(const std::string& houseName, const std::string& algoName,
-                                 int numSteps, int dirtLeft, bool finished, bool inDock, int score) const {
+                                 int numSteps, int dirtLeft, bool finished, bool inDock, int score, const std::string& steps) const {
     std::string filename = houseName + "-" + algoName + ".txt";
     std::ofstream outFile(filename);
 
@@ -109,14 +134,16 @@ void Simulation::writeOutputFile(const std::string& houseName, const std::string
     outFile << "Status = " << (finished ? "FINISHED" : (numSteps >= maxSteps ? "WORKING" : "DEAD")) << std::endl;
     outFile << "InDock = " << (inDock ? "TRUE" : "FALSE") << std::endl;
     outFile << "Score = " << score << std::endl;
-    // Write steps...
+    outFile << "Steps:\n" << steps << std::endl;
 }
 
 int Simulation::calculateScore(int numSteps, int dirtLeft, bool finished, bool inDock) const {
     if (numSteps >= maxSteps) {
-        return maxSteps + dirtLeft * 300 + (finished && !inDock ? 3000 : 0);
+        return maxSteps + dirtLeft * 300 + 2000;
+    } else if (finished && !inDock) {
+        return maxSteps + dirtLeft * 300 + 3000;
     } else {
-        return numSteps + dirtLeft * 300 + (!inDock ? 1000 : 0);
+        return numSteps + dirtLeft * 300 + (inDock ? 0 : 1000);
     }
 }
 

@@ -19,11 +19,11 @@ bool SensorImpl::isWall(Direction d) const {
         case Direction::West:  checkCol--; break;
     }
 
-    return house.isWall(checkRow, checkCol);
+    return house.isWall(Position({checkRow, checkCol}));
 }
 
 int SensorImpl::dirtLevel() const {
-    return house.getDirtLevel(currentRow, currentCol);
+    return house.getDirtLevel(Position({currentRow, currentCol}));
 }
 
 std::size_t SensorImpl::getBatteryState() const {
@@ -35,6 +35,6 @@ void SensorImpl::updatePosition(int row, int col) {
     currentCol = col;
 }
 
-void SensorImpl::updateBattery(int newBatteryLevel) {
-    batteryLevel = newBatteryLevel;
+void SensorImpl::useBattery() {
+    batteryLevel--;
 }

@@ -1,4 +1,4 @@
-#include "../include/Vacuum.h"
+#include "../simulator//Vacuum.h"
 #include <algorithm> // For std::min
 
 Vacuum::Vacuum() : curr_state(State::WORKING) {}

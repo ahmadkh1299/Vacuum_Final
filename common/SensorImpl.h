@@ -27,7 +27,7 @@ public:
 
     // Methods to update sensor state
     void updatePosition(int row, int col);
-    void updateBattery(int batteryLevel);
+    void useBattery();
 
 private:
     const House& house;
