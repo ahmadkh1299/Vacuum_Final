@@ -31,6 +31,10 @@ public:
                                           std::pair<int, int> dst,
                                           bool search);
 
+    std::stack<Direction> getShortestPath_A(std::pair<int, int> src,
+                                          std::pair<int, int> dst,
+                                          bool search);
+
     std::vector<std::pair<int, int>> getNeighbors(std::pair<int, int> point);
 
 private:

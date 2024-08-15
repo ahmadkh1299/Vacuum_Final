@@ -86,7 +86,83 @@ void Explorer::updateAdjacentArea(Direction dir, Position position, bool isWall)
         }
     }
 }
-
+//function to find the path from src to dst using A* algorithm, or to the closest dirt/unexplored area if search is true
+std::stack<Direction> Explorer::getShortestPath_A(std::pair<int, int> src, std::pair<int, int> dst, bool search) {
+    std::stack<Direction> path;
+    std::priority_queue<Position, std::vector<Position>, std::greater<Position>> pq;
+    std::map<Position, bool> visited;
+    std::map<Position, Position> parent;
+    std::map<Position, int> g;
+    std::map<Position, int> h;
+    std::map<Position, int> f;
+    pq.push(Position{src.first, src.second});
+    g[Position{src.first, src.second}] = 0;
+    h[Position{src.first, src.second}] = abs(src.first - dst.first) + abs(src.second - dst.second);
+    f[Position{src.first, src.second}] = g[Position{src.first, src.second}] + h[Position{src.first, src.second}];
+    visited[Position{src.first, src.second}] = true;
+    bool found = false;
+    while (!pq.empty()) {
+        Position t = pq.top();
+        pq.pop();
+        if (t.r == dst.first && t.c == dst.second) {
+            found = true;
+            break;
+        }
+        for (const auto& v : getNeighbors({t.r, t.c})) {
+            Position neighbor = {v.first, v.second};
+            if (visited.count(neighbor) == 0) {
+                g[neighbor] = g[t] + 1;
+                h[neighbor] = abs(neighbor.r - dst.first) + abs(neighbor.c - dst.second);
+                f[neighbor] = g[neighbor] + h[neighbor];
+                pq.push(neighbor);
+                visited[neighbor] = true;
+                parent[neighbor] = t;
+            }
+        }
+    }
+    if (found) {
+        Position v = {dst.first, dst.second};
+        while (v != Position{src.first, src.second}) {
+            path.push(PositionUtils::findDirection(parent[v], v));
+            v = parent[v];
+        }
+    } else {
+        std::queue<Position> q;
+        std::map<Position, bool> visited;
+        std::map<Position, Position> parent;
+        q.push({src.first, src.second});
+        visited[{src.first, src.second}] = true;
+        while (!q.empty()) {
+            Position t = q.front();
+            q.pop();
+            for (const auto& v : getNeighbors({t.r, t.c})) {
+                Position neighbor = {v.first, v.second};
+                if (visited.count(neighbor) == 0) {
+                    q.push(neighbor);
+                    visited[neighbor] = true;
+                    parent[neighbor] = t;
+                }
+            }
+            if (search) {
+                if (!((mapped_areas_.count(t) != 0 && mapped_areas_[t] > 0) || unexplored_areas_.count(t) != 0)) {
+                    continue;
+                }
+            }
+            if (!search) {
+                if ((!path.empty() || (t.r != dst.first || t.c != dst.second))) {
+                    continue;
+                }
+            }
+            Position v = t;
+            while (v != Position{src.first, src.second}) {
+                path.push(PositionUtils::findDirection(parent[v], v));
+                v = parent[v];
+            }
+            break;
+        }
+    }
+    return path;
+}
 // Get the shortest path from source to destination, or to the closest dirt/unexplored area if search is true
 std::stack<Direction> Explorer::getShortestPath(std::pair<int, int> src, std::pair<int, int> dst, bool search) {
     std::stack<Direction> path;

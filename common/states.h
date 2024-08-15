@@ -19,6 +19,15 @@ struct Position {
         }
     }
 
+    // Define operator> for equality comparisons
+    bool operator>(const Position& other) const {
+        if (r != other.r) {
+            return r > other.r;
+        } else {
+            return c > other.c;
+        }
+    }
+
     // Define operator== for equality comparisons
     bool operator==(const Position& other) const {
         return r == other.r && c == other.c;
