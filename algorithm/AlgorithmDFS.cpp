@@ -5,6 +5,10 @@
 #include "AlgorithmDFS.h"
 #include "../algorithm/AlgorithmRegistration.h"
 
+REGISTER_ALGORITHM(AlgorithmDFS);
+
+AlgorithmDFS::AlgorithmDFS() : explorer_() {}
+
+
 // Your algorithm implementation
 
-:REGISTER_ALGORITHM(AlgorithmDFS)
