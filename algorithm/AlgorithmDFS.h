@@ -24,9 +24,11 @@ public:
 
     Step nextStep() override;
 
+    void setSensors(SensorImpl &sensors);
+
 private:
     int max_steps_;
-    SensorImpl sensors_;
+    SensorImpl* sensors_;
     Explorer explorer_;
 };
 

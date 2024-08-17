@@ -42,7 +42,7 @@ struct Position {
 enum class State {
     CHARGING,
     TO_DOCK,
-    TO_POS,
+    TO_POS, // backtracking
     WORKING,
     FINISH,
     EXPLORE,

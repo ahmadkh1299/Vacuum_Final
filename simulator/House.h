@@ -35,6 +35,8 @@ private:
     int cols;
     Position dockingStation;
     int total_dirt;
+    std::string house_name;
+
 
     void addWallsPadding(std::vector<std::string>& layout_v);
     void initializeMatrix(const std::vector<std::string>& layout_v);

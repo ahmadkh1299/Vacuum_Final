@@ -41,7 +41,7 @@ void Simulation::loadAlgorithms(const std::string& algoPath) {
                 if (!handle) {
                     throw std::runtime_error(dlerror());
                 }
-                // ...
+
                 dlclose(handle);
             } catch (const std::exception& e) {
                 std::ofstream errorFile(entry.path().stem().string() + ".error");
@@ -98,10 +98,10 @@ void Simulation::run() {
 
 void Simulation::runSimulation(House& house, AbstractAlgorithm& algorithm) {
     Vacuum vacuum = Vacuum();
-    vacuum.init(maxBattery, house.getDockingStation());
-    Explorer explorer;
+    vacuum.init(maxBattery, house.getDockingStation(), house.getDockingStation());
 
     SensorImpl sensors(house, maxSteps);
+
     algorithm.setWallsSensor(sensors);
     algorithm.setDirtSensor(sensors);
     algorithm.setBatteryMeter(sensors);
@@ -110,18 +110,8 @@ void Simulation::runSimulation(House& house, AbstractAlgorithm& algorithm) {
     int stepsTaken = 0;
     bool finished = false;
 
-/*    while (stepsTaken < maxSteps && !finished) {
-        // Get the next Step from the algorithm
-        Step step = algorithm.nextStep();
-        vacuum.step(step);
-        stepsTaken++;
-        Position currPos = vacuum.getPosition();
-        if(explorer.explored(currPos)){
-            explorer.updateDirtAndClean(currPos, house.getDirtLevel(currPos));
-
-        sensors.updatePosition(vacuum.getPosition().r, vacuum.getPosition().c);
-        sensors.useBattery();
-    }*/
+    int final_score = calculateScore(stepsTaken, house.getTotalDirt(), finished, vacuum.atDockingStation());
+    writeOutputFile(house.getName(), algorithm.getName(), stepsTaken, house.getTotalDirt(), finished, vacuum.atDockingStation(), final_score, sensors.getSteps());
 }
 
 void Simulation::writeOutputFile(const std::string& houseName, const std::string& algoName,

@@ -5,6 +5,32 @@
 #include "AlgorithmsBFS.h"
 #include "AlgorithmRegistration.h"
 
-// Your algorithm implementation
+REGISTER_ALGORITHM(AlgorithmsBFS);
 
-REGISTER_ALGORITHM(SimpleAlgorithm)
+AlgorithmsBFS::AlgorithmsBFS() :
+        explorer_(), sensors_(nullptr) {}
+
+void AlgorithmsBFS::setSensors(const SensorImpl &sensors) {
+    sensors_ = &sensors;
+}
+
+void AlgorithmsBFS::setMaxSteps(std::size_t maxSteps) {
+    max_steps_ = maxSteps;
+}
+
+void AlgorithmsBFS::setWallsSensor(const WallsSensor &wallsSensor) {
+    sensors_ = dynamic_cast<const SensorImpl*>(&wallsSensor);
+}
+
+void AlgorithmsBFS::setDirtSensor(const DirtSensor &dirtSensor) {
+    sensors_ = dynamic_cast<const SensorImpl*>(&dirtSensor);
+}
+
+void AlgorithmsBFS::setBatteryMeter(const BatteryMeter &batteryMeter) {
+    sensors_ = dynamic_cast<const SensorImpl*>(&batteryMeter);
+}
+
+Step AlgorithmsBFS::nextStep() {
+    // Your algorithm implementation
+    return Step();
+}

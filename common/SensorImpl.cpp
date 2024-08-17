@@ -3,10 +3,12 @@
 //
 
 #include "SensorImpl.h"
-#include "SensorImpl.h"
+
 
 SensorImpl::SensorImpl(const House& house, int maxBattery)
         : house(house), currentRow(0), currentCol(0), batteryLevel(maxBattery), maxBattery(maxBattery) {}
+
+
 
 bool SensorImpl::isWall(Direction d) const {
     int checkRow = currentRow;
@@ -30,11 +32,18 @@ std::size_t SensorImpl::getBatteryState() const {
     return batteryLevel;
 }
 
-void SensorImpl::updatePosition(int row, int col) {
-    currentRow = row;
-    currentCol = col;
+void SensorImpl::updatePosition(Step stepDirection) {
+    switch (stepDirection) {
+        case Step::North: currentRow--; break;
+        case Step::East:  currentCol++; break;
+        case Step::South: currentRow++; break;
+        case Step::West:  currentCol--; break;
+        case Step::Stay: break;
+        case Step::Finish: break;
+    }
 }
 
 void SensorImpl::useBattery() {
     batteryLevel--;
 }
+

@@ -14,6 +14,7 @@
 class SensorImpl : public WallsSensor, public DirtSensor, public BatteryMeter {
 public:
     SensorImpl(const House& house, int maxBattery);
+
     ~SensorImpl() = default;
 
     // WallsSensor interface
@@ -26,8 +27,9 @@ public:
     std::size_t getBatteryState() const override;
 
     // Methods to update sensor state
-    void updatePosition(int row, int col);
+    void updatePosition(Step stepDirection);
     void useBattery();
+
 
 private:
     const House& house;

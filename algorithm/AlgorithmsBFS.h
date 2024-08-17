@@ -10,6 +10,7 @@
 
 
 class AlgorithmsBFS : public AbstractAlgorithm {
+public:
     AlgorithmsBFS();
 
     ~AlgorithmsBFS() = default;
@@ -24,9 +25,10 @@ class AlgorithmsBFS : public AbstractAlgorithm {
 
     Step nextStep() override;
 
+    void setSensors(const SensorImpl &sensors);
 private:
     int max_steps_;
-    SensorImpl sensors_;
+    const SensorImpl *sensors_;
     Explorer explorer_;
 };
 
