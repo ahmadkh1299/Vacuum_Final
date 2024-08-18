@@ -1,16 +1,15 @@
 #include "../simulator//Vacuum.h"
 #include <algorithm> // For std::min
 
-Vacuum::Vacuum() : curr_state(State::WORKING) {}
+Vacuum::Vacuum() {}
 
 Vacuum::~Vacuum() {}
 
-void Vacuum::init(double battery, Position position, Position docking_station) {
+void Vacuum::init(double battery, Position position) {
     curr_battery = max_battery = battery;
     stepsto_charge = 20;
     curr_pos = position;
-    curr_state = State::WORKING;
-    this->docking_station = docking_station;
+    this->docking_station = position;
 }
 
 double Vacuum::maxBattery() const {
@@ -47,7 +46,7 @@ void Vacuum::step(Step stepDirection) {
                 }
                 break;
             case Step::Finish:
-                curr_state = State::FINISH;
+
                 break;
             default:
                 break;
@@ -58,17 +57,9 @@ void Vacuum::step(Step stepDirection) {
 void Vacuum::charge() {
     curr_battery += max_battery / stepsto_charge;
     curr_battery = std::min(curr_battery, max_battery);
-    curr_state = State::CHARGING;
 }
 
 Position Vacuum::getPosition() const {
     return curr_pos;
 }
 
-State Vacuum::getState() const {
-    return curr_state;
-}
-
-void Vacuum::setState(State newState) {
-    curr_state = newState;
-}

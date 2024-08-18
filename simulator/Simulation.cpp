@@ -105,6 +105,11 @@ void Simulation::runSimulation(House& house, AbstractAlgorithm& algorithm, const
     int stepsTaken = 0;
     bool finished = false;
 
+    while (stepsTaken < maxSteps && !finished){
+        Step step = algorithm.nextStep();
+        vacuum.step(step);
+    }
+
     int final_score = calculateScore(stepsTaken, house.getTotalDirt(), finished, vacuum.atDockingStation());
     writeOutputFile(house.getName(), algoName, stepsTaken, house.getTotalDirt(), finished, vacuum.atDockingStation(), final_score, sensors.getSteps());
 }

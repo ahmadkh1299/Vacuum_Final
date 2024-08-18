@@ -7,6 +7,7 @@
 #include "../simulator/Explorer.h"
 #include "../common/AbstractAlgorithm.h"
 #include "../common/SensorImpl.h"
+#include "../common/states.h"
 
 class AlgorithmDFS : public AbstractAlgorithm {
 public:
@@ -24,12 +25,20 @@ public:
 
     Step nextStep() override;
 
+    bool StateChanged() const;
+
+    State getCurrentState() const;
+
     void setSensors(SensorImpl &sensors);
 
 private:
     int max_steps_;
     SensorImpl* sensors_;
     Explorer explorer_;
+    bool state_changed;
+    State curr_state;
+    Position docking_station = {0, 0};
+    std::pair<int,int> last_dirty_pos_ = {0, 0};
 };
 
 

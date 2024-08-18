@@ -13,7 +13,7 @@ public:
     ~Vacuum();
 
     // Initializes the vacuum with a given battery level and starting position
-    void init(double battery, Position position, Position docking_station);
+    void init(double battery, Position position);
 
     // Returns the maximum battery capacity
     double maxBattery() const;
@@ -30,17 +30,11 @@ public:
     // Returns the current position of the vacuum
     Position getPosition() const;
 
-    // Returns the current state of the vacuum
-    State getState() const;
-
-    // Sets the state of the vacuum
-    void setState(State newState);
 
     bool atDockingStation() const;
 
 
 private:
-    State curr_state;      // Current state of the vacuum
     double curr_battery;   // Current battery level
     double max_battery;     // Maximum battery capacity
     int stepsto_charge;    // Number of steps required for a full charge

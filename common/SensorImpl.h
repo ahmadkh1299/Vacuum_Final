@@ -26,9 +26,12 @@ public:
     // BatteryMeter interface
     std::size_t getBatteryState() const override;
 
+    std::pair<int,int> getCurrentPosition() const;
+
     // Methods to update sensor state
     void updatePosition(Step stepDirection);
     void useBattery();
+    std::size_t getMaxBattery() const;
 
 
 private:

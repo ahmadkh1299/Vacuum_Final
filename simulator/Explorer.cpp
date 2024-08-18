@@ -12,47 +12,61 @@ bool Explorer::explored(const Position pos) const {
 }
 int Explorer::getDirtLevel(const Position pos) {
     if (explored(pos)) {
-        return mapped_areas_.at(pos);
+        return mapped_areas_.at(pos).first;
     }
     std::cout << "ERROR!! " << __FUNCTION__ << " position does not exist." << std::endl;
     return -2; // Consider defining error codes in a separate header
 }
 
+// Get the distance from the docking station to a specific position
+int Explorer::getDistance(const Position pos) {
+    if (mapped_areas_.count(pos) != 0) {
+        return mapped_areas_[pos].second;
+    }
+    return -1;
+}
+
+// Set the distance from the docking station to a specific position
+void Explorer::setDistance(const Position pos, int distance) {
+        mapped_areas_[pos].second = distance;
+}
+
+
 // Set the dirt level for a specific position
 void Explorer::setDirtLevel(const Position pos, int dirtLevel) {
-    if (mapped_areas_.count(pos) != 0 && mapped_areas_[pos] > 0 && mapped_areas_[pos] <= MAXIMUM_DIRT) {
-        total_dirt_ -= mapped_areas_[pos];
+    if (mapped_areas_.count(pos) != 0 && mapped_areas_[pos].first > 0 && mapped_areas_[pos].first <= MAXIMUM_DIRT) {
+        total_dirt_ -= mapped_areas_[pos].first;
     }
 
-    mapped_areas_[pos] = dirtLevel;
+    mapped_areas_[pos].first = dirtLevel;
     total_dirt_ += (dirtLevel >= 0 && dirtLevel <= MAXIMUM_DIRT) ? dirtLevel : 0;
 }
 
 // Check if a position is a wall
 bool Explorer::isWall(const Position pos) {
-    return mapped_areas_[pos] == static_cast<int>(LocType::Wall);
+    return mapped_areas_[pos].first == static_cast<int>(LocType::Wall);
 }
 
 // Check if a position is the docking station
 bool Explorer::isDockingStation(const Position pos) {
-    return mapped_areas_[pos] == static_cast<int>(LocType::Dock);
+    return mapped_areas_[pos].first == static_cast<int>(LocType::Dock);
 }
 
 // Perform cleaning at a specific position
 void Explorer::performCleaning(const Position pos) {
-    if (mapped_areas_[pos] > 0 && mapped_areas_[pos] <= MAXIMUM_DIRT) {
-        mapped_areas_[pos]--;
+    if (mapped_areas_[pos].first > 0 && mapped_areas_[pos].first <= MAXIMUM_DIRT) {
+        mapped_areas_[pos].first--;
         total_dirt_--;
     }
 }
 
 // Update the dirt level at a position and then clean it
 void Explorer::updateDirtAndClean(const Position pos, int dirtLevel) {
-    if (mapped_areas_[pos] > 0 && mapped_areas_[pos] <= MAXIMUM_DIRT) {
-        total_dirt_ -= mapped_areas_[pos];
+    if (mapped_areas_[pos].first > 0 && mapped_areas_[pos].first <= MAXIMUM_DIRT) {
+        total_dirt_ -= mapped_areas_[pos].first;
     }
 
-    mapped_areas_[pos] = dirtLevel;
+    mapped_areas_[pos].first = dirtLevel;
     total_dirt_ += (dirtLevel >= 0 && dirtLevel <= MAXIMUM_DIRT) ? dirtLevel : 0;
 
     performCleaning(pos);
@@ -79,7 +93,7 @@ void Explorer::removeFromUnexplored(const Position pos) {
 void Explorer::updateAdjacentArea(Direction dir, Position position, bool isWall) {
     Position adjacentPosition = PositionUtils::movePosition(position, dir);
     if (isWall) {
-        mapped_areas_[adjacentPosition] = static_cast<int>(LocType::Wall);
+        mapped_areas_[adjacentPosition].first = static_cast<int>(LocType::Wall);
     } else {
         if (mapped_areas_.count(adjacentPosition) == 0) {
             unexplored_areas_[adjacentPosition];
@@ -121,7 +135,7 @@ std::stack<Direction> Explorer::getShortestPath_A(std::pair<int, int> src, std::
             }
         }
         // Check for search mode conditions
-        if (search && ((mapped_areas_.count(t) != 0 && mapped_areas_[t] > 0) || unexplored_areas_.count(t) != 0)) {
+        if (search && ((mapped_areas_.count(t) != 0 && mapped_areas_[t].first > 0) || unexplored_areas_.count(t) != 0)) {
             found = true;
             break;
         }
@@ -151,7 +165,7 @@ std::stack<Direction> Explorer::getShortestPath_A(std::pair<int, int> src, std::
                 }
             }
             if (search) {
-                if (!((mapped_areas_.count(t) != 0 && mapped_areas_[t] > 0) || unexplored_areas_.count(t) != 0)) {
+                if (!((mapped_areas_.count(t) != 0 && mapped_areas_[t].first > 0) || unexplored_areas_.count(t) != 0)) {
                     continue;
                 }
             }
@@ -197,7 +211,7 @@ std::stack<Direction> Explorer::getShortestPath(std::pair<int, int> src, std::pa
         }
 
         if (search) {
-            if (!((mapped_areas_.count(t) != 0 && mapped_areas_[t] > 0) || unexplored_areas_.count(t) != 0)) {
+            if (!((mapped_areas_.count(t) != 0 && mapped_areas_[t].first > 0) || unexplored_areas_.count(t) != 0)) {
                 continue;
             }
         }
@@ -216,6 +230,15 @@ std::stack<Direction> Explorer::getShortestPath(std::pair<int, int> src, std::pa
         break;
     }
     return path;
+}
+
+bool Explorer::hasMoreDirtyAreas() const {
+    for (const auto& area : mapped_areas_) {
+        if (area.second.first > 0) {  // Check if there's any dirt left in any mapped area
+            return true;
+        }
+    }
+    return false;
 }
 
 // Get the neighboring positions for a given point

@@ -18,6 +18,8 @@ public:
     bool explored(const Position pos) const;
     int getDirtLevel(const Position pos);
     void setDirtLevel(const Position pos, int dirtLevel);
+    int getDistance(const Position pos);
+    void setDistance(const Position pos, int distance);
     bool isWall(const Position pos);
     bool isDockingStation(const Position pos);
     void performCleaning(const Position pos);
@@ -26,6 +28,8 @@ public:
     bool isAreaUnexplored(const Position pos);
     void removeFromUnexplored(const Position pos);
     void updateAdjacentArea(Direction dir, Position position, bool isWall);
+
+    bool hasMoreDirtyAreas() const;
 
     std::stack<Direction> getShortestPath(std::pair<int, int> src,
                                           std::pair<int, int> dst,
@@ -38,7 +42,7 @@ public:
     std::vector<std::pair<int, int>> getNeighbors(std::pair<int, int> point);
 
 private:
-    std::map<Position, int> mapped_areas_;
+    std::map<Position, std::pair<int,int>> mapped_areas_; // first: dirt level, second: curr distance from docking station
     std::map<Position, bool> unexplored_areas_;
     int total_dirt_;
 };

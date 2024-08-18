@@ -43,7 +43,14 @@ void SensorImpl::updatePosition(Step stepDirection) {
     }
 }
 
+std::pair<int,int> SensorImpl::getCurrentPosition() const {
+    return {currentRow, currentCol};
+}
+
 void SensorImpl::useBattery() {
     batteryLevel--;
 }
 
+std::size_t SensorImpl::getMaxBattery() const {
+    return maxBattery;
+}
