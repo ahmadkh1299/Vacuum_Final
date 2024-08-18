@@ -36,12 +36,17 @@ public:
         return cols;
     }
 
+    const std::string& getHouseName() const {  // New method to get house name
+        return house_name;
+    }
+
 private:
     std::vector<std::string> layout;
     int max_steps;
     int max_battery;
     int rows;
     int cols;
+    std::string house_name;  // New member to store house name
 
     void readFromFile(const std::string &file_path) {
         std::ifstream file(file_path);
@@ -60,6 +65,7 @@ private:
             throw std::runtime_error("Invalid file: Not enough lines");
         }
 
+        house_name = layout[0];  // Save the house name from the first line
         max_steps = parseValue("MaxSteps", layout[1]);
         max_battery = parseValue("MaxBattery", layout[2]);
         rows = parseValue("Rows", layout[3]);

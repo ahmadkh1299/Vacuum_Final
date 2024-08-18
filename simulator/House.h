@@ -7,7 +7,7 @@
 
 class House {
 public:
-    House(const std::vector<std::string>& layout_v);
+    House(const std::vector<std::string>& layout_v, const std::string& name);
     ~House() = default;
     // Getters
     int getRows() const;
@@ -21,6 +21,7 @@ public:
     void cleanCell(const Position& pos);
     bool isValidPosition(const Position& pos) const;
     bool isInDock(const Position& pos) const;
+    std::string getName() const;
 
     // Utility methods
     int getTotalDirt() const;

@@ -20,7 +20,7 @@ void Simulation::loadHouse(const std::string& housePath) {
         if (entry.path().extension() == ".house") {
             try {
                 ConfigReader config(entry.path().string());
-                houses.push_back(std::make_unique<House>(config.getLayout()));
+                houses.push_back(std::make_unique<House>(config.getLayout(), config.getHouseName()));
                 maxSteps = std::max(maxSteps, config.getMaxSteps());
                 maxBattery = config.getMaxBattery();
             } catch (const std::exception& e) {
@@ -51,7 +51,7 @@ void Simulation::loadAlgorithms(const std::string& algoPath) {
     }
 
     for (const auto& algo : registrar) {
-        algorithms.push_back(algo.create());
+        algorithms.emplace_back(algo.name(), algo.create());  // Store both name and algorithm
     }
 }
 
@@ -60,30 +60,24 @@ void Simulation::run() {
     std::mutex outputMutex;
 
     for (const auto& house : houses) {
-        for (const auto& algo : algorithms) {
-            threads.emplace_back([this, &house, &algo, &outputMutex]() {
-                std::condition_variable cv;
-                std::mutex cv_m;
-                bool finished = false;
-                std::thread t([&]() {
-                    runSimulation(*house, *algo);
-                    finished = true;
-                    cv.notify_one();
-                });
+        for (const auto& algoPair : algorithms) {  // Using algoPair to get both name and algorithm
+            const std::string& algoName = algoPair.first;
+            auto& algo = algoPair.second;
 
-                std::unique_lock<std::mutex> lk(cv_m);
-                if(cv.wait_for(lk, std::chrono::milliseconds(maxSteps), [&]{ return finished; })) {
-                    t.join();
-                } else {
-                    // Handle timeout
-                    // ...
-                    t.detach();
+            threads.emplace_back([this, &house, &algo, algoName, &outputMutex]() {
+                try {
+                    runSimulation(*house, *algo, algoName);  // Passing algoName to runSimulation
+                } catch (const std::exception& e) {
+                    std::lock_guard<std::mutex> lock(outputMutex);
+                    std::cerr << "Error during simulation: " << e.what() << std::endl;
                 }
             });
 
             if (threads.size() >= numThreads) {
                 for (auto& t : threads) {
-                    t.join();
+                    if (t.joinable()) {
+                        t.join();
+                    }
                 }
                 threads.clear();
             }
@@ -91,14 +85,15 @@ void Simulation::run() {
     }
 
     for (auto& t : threads) {
-        t.join();
+        if (t.joinable()) {
+            t.join();
+        }
     }
 }
 
-
-void Simulation::runSimulation(House& house, AbstractAlgorithm& algorithm) {
-    Vacuum vacuum = Vacuum();
-    vacuum.init(maxBattery, house.getDockingStation(), house.getDockingStation());
+void Simulation::runSimulation(House& house, AbstractAlgorithm& algorithm, const std::string& algoName) {
+    Vacuum vacuum;
+    vacuum.init(maxBattery, house.getDockingStation());
 
     SensorImpl sensors(house, maxSteps);
 
@@ -111,7 +106,7 @@ void Simulation::runSimulation(House& house, AbstractAlgorithm& algorithm) {
     bool finished = false;
 
     int final_score = calculateScore(stepsTaken, house.getTotalDirt(), finished, vacuum.atDockingStation());
-    writeOutputFile(house.getName(), algorithm.getName(), stepsTaken, house.getTotalDirt(), finished, vacuum.atDockingStation(), final_score, sensors.getSteps());
+    writeOutputFile(house.getName(), algoName, stepsTaken, house.getTotalDirt(), finished, vacuum.atDockingStation(), final_score, sensors.getSteps());
 }
 
 void Simulation::writeOutputFile(const std::string& houseName, const std::string& algoName,

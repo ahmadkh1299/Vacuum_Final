@@ -3,8 +3,8 @@
 #include <algorithm>
 #include <stdexcept>
 
-House::House(const std::vector<std::string>& layout_v)
-        : dockingStation({-1, -1}), total_dirt(0) {
+House::House(const std::vector<std::string>& layout_v, const std::string& name)
+        : dockingStation({-1, -1}), total_dirt(0), house_name(name) {  // Save the house name
     std::vector<std::string> padded_layout = layout_v;
     addWallsPadding(padded_layout);
     initializeMatrix(padded_layout);
@@ -90,6 +90,10 @@ int House::getCell(const Position& pos) const {
         return -1; // Boundary walls represented by -1
     }
     return house_matrix[pos.r][pos.c];
+}
+
+std::string House::getName() const {
+    return house_name;
 }
 
 bool House::isWall(const Position& pos) const {
