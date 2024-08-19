@@ -38,8 +38,10 @@ private:
     bool state_changed;
     State curr_state;
     Position docking_station = {0, 0};
-    std::pair<int,int> last_dirty_pos_ = {0, 0};
-};
+    std::pair<int,int> last_dirty_pos_ = {-20, -20};
+
+    int getMinDistanceOfNeighbors(const Position& curr_pos);
+    };
 
 
 #endif //HW3_SKELETON_ALGORITHMDFS_H
