@@ -2,6 +2,7 @@
 #include "AlgorithmRegistration.h"
 
 REGISTER_ALGORITHM(Algorithm_212346076_207177197_B);
+
 const Position Algorithm_212346076_207177197_B::DOCK_POS = {0, 0};
 
 Algorithm_212346076_207177197_B::Algorithm_212346076_207177197_B()
@@ -35,10 +36,6 @@ Step Algorithm_212346076_207177197_B::nextStep() {
     steps_++;
     updateExplorerInfo();
 
-    if (current_state_ == State::TO_DOCK) {
-        return moveAlongPath();
-    }
-
     if (shouldReturnToDock()) {
         initializeReturnToDock();
         return moveAlongPath();
@@ -49,6 +46,8 @@ Step Algorithm_212346076_207177197_B::nextStep() {
             return exploreAndClean();
         case State::CLEANING:
             return cleanCurrentPosition();
+        case State::TO_DOCK:
+            return moveAlongPath();
         case State::CHARGING:
             return handleCharging();
         default:
@@ -63,10 +62,17 @@ bool Algorithm_212346076_207177197_B::shouldFinish() {
 }
 
 void Algorithm_212346076_207177197_B::updateExplorerInfo() {
-    explorer_.setDirtLevel(current_position_, sensors_->dirtLevel());
-    explorer_.removeFromUnexplored(current_position_);
-    for (const auto& dir : {Direction::North, Direction::East, Direction::South, Direction::West}) {
-        explorer_.updateAdjacentArea(dir, current_position_, sensors_->isWall(dir));
+    if (!explorer_.explored(current_position_)) {
+        explorer_.setDirtLevel(current_position_, sensors_->dirtLevel());
+        explorer_.setDistance(current_position_, calculateDistanceFromDock());
+        explorer_.removeFromUnexplored(current_position_);
+
+        // Update adjacent areas for newly explored positions
+        for (const auto& dir : {Direction::North, Direction::East, Direction::South, Direction::West}) {
+            explorer_.updateAdjacentArea(dir, current_position_, sensors_->isWall(dir));
+        }
+    } else {
+        explorer_.updateDirtAndClean(current_position_, sensors_->dirtLevel());
     }
 }
 
@@ -94,11 +100,12 @@ Step Algorithm_212346076_207177197_B::moveAlongPath() {
     Direction next_dir = path_to_dock_.top();
     path_to_dock_.pop();
     current_position_ = PositionUtils::movePosition(current_position_, next_dir);
+    updateExplorerInfo();
     return Step(next_dir);
 }
 
 Step Algorithm_212346076_207177197_B::exploreAndClean() {
-    if (sensors_->dirtLevel() > 0) {
+    if (sensors_->dirtLevel() > 0 && current_position_ != DOCK_POS) {
         current_state_ = State::CLEANING;
         return cleanCurrentPosition();
     }
@@ -110,8 +117,13 @@ Step Algorithm_212346076_207177197_B::exploreAndClean() {
     }
 
     Direction next_dir = PositionUtils::findDirection(current_position_, next_pos);
-    current_position_ = next_pos;
-    return Step(next_dir);
+    if (!sensors_->isWall(next_dir)) {
+        current_position_ = next_pos;
+        return Step(next_dir);
+    } else {
+        explorer_.updateAdjacentArea(next_dir, current_position_, true);
+        return exploreAndClean();
+    }
 }
 
 Step Algorithm_212346076_207177197_B::cleanCurrentPosition() {
@@ -119,6 +131,7 @@ Step Algorithm_212346076_207177197_B::cleanCurrentPosition() {
         explorer_.updateDirtAndClean(current_position_, sensors_->dirtLevel() - 1);
         return Step::Stay;
     }
+
     current_state_ = State::EXPLORE;
     return exploreAndClean();
 }
@@ -134,7 +147,7 @@ Step Algorithm_212346076_207177197_B::handleCharging() {
 Position Algorithm_212346076_207177197_B::findNextDirtyOrUnexplored() {
     for (const auto& dir : {Direction::North, Direction::East, Direction::South, Direction::West}) {
         Position neighbor = PositionUtils::movePosition(current_position_, dir);
-        if (explorer_.isAreaUnexplored(neighbor) || explorer_.getDirtLevel(neighbor) > 0) {
+        if (!sensors_->isWall(dir) && (explorer_.isAreaUnexplored(neighbor) || explorer_.getDirtLevel(neighbor) > 0)) {
             return neighbor;
         }
     }
@@ -145,4 +158,9 @@ Position Algorithm_212346076_207177197_B::findNextDirtyOrUnexplored() {
 
 bool Algorithm_212346076_207177197_B::isHouseClean() {
     return !explorer_.hasMoreDirtyAreas();
+}
+
+int Algorithm_212346076_207177197_B::calculateDistanceFromDock() {
+    auto path = explorer_.getShortestPath_A({current_position_.r, current_position_.c}, {DOCK_POS.r, DOCK_POS.c}, false);
+    return path.size();
 }

@@ -54,7 +54,7 @@ void Simulation::loadAlgorithms(const std::string& algoPath) {
         algorithms.emplace_back(algo.name(), algo.create());  // Store both name and algorithm
     }
 }
-
+/*
 void Simulation::run() {
     std::vector<std::thread> threads;
     std::mutex outputMutex;
@@ -89,8 +89,43 @@ void Simulation::run() {
             t.join();
         }
     }
-}
+}*/
+void Simulation::run() {
+    std::vector<std::thread> threads;
+    std::mutex outputMutex;
 
+    for (const auto& house : houses) {
+        for (const auto& algoPair : algorithms) {
+            const std::string& algoName = algoPair.first;
+            auto& algo = algoPair.second;
+
+            threads.emplace_back([this, &house, &algo, algoName, &outputMutex]() {
+                try {
+                    runSimulation(*house, *algo, algoName);
+                } catch (const std::exception& e) {
+                    std::lock_guard<std::mutex> lock(outputMutex);
+                    std::cerr << "Error during simulation: " << e.what() << std::endl;
+                }
+            });
+
+            if (threads.size() >= numThreads) {
+                for (auto& t : threads) {
+                    if (t.joinable()) {
+                        t.join();
+                    }
+                }
+                threads.clear();
+            }
+        }
+    }
+
+    for (auto& t : threads) {
+        if (t.joinable()) {
+            t.join();
+        }
+    }
+}
+/*
 void Simulation::runSimulation(House& house, AbstractAlgorithm& algorithm, const std::string& algoName) {
     Vacuum vacuum;
     vacuum.init(maxBattery, house.getDockingStation());
@@ -113,7 +148,7 @@ void Simulation::runSimulation(House& house, AbstractAlgorithm& algorithm, const
     int final_score = calculateScore(stepsTaken, house.getTotalDirt(), finished, vacuum.atDockingStation());
     writeOutputFile(house.getName(), algoName, stepsTaken, house.getTotalDirt(), finished, vacuum.atDockingStation(), final_score, sensors.getSteps());
 }
-
+*/
 void Simulation::writeOutputFile(const std::string& houseName, const std::string& algoName,
                                  int numSteps, int dirtLeft, bool finished, bool inDock, int score, const std::string& steps) const {
     std::string filename = houseName + "-" + algoName + ".txt";

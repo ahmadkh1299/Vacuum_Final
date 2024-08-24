@@ -40,6 +40,7 @@ private:
     Step handleCharging();
     Position findNextDirtyOrUnexplored();
     bool isHouseClean();
+    int calculateDistanceFromDock();
 };
 
 #endif // ALGORITHM_212346076_207177197_B_H

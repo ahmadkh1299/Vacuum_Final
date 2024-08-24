@@ -107,7 +107,7 @@ int House::getDirtLevel(const Position& pos) const {
 
 void House::cleanCell(const Position& pos) {
     if (pos.r >= 0 && pos.r < rows && pos.c >= 0 && pos.c < cols) {
-        if (house_matrix[pos.r][pos.c] > 0 && house_matrix[pos.r][pos.c] < 20) {
+        if (house_matrix[pos.r][pos.c] > 0 && house_matrix[pos.r][pos.c] < 10) {
             house_matrix[pos.r][pos.c]--;
             total_dirt--;
             std::cout << "Cleaned cell at (" << pos.r << ", " << pos.c
