@@ -1,0 +1,3 @@
+C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/CMakeFiles/Vacuum_Final.dir
+C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/CMakeFiles/rebuild_cache.dir

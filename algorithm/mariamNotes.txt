@@ -1,0 +1,17 @@
+i have to check if the house class working (add print methods)
+check the the regst code
+check configfile 
+start to write the vacuum class 
+add sensor implemnation from HW2
+
+Implementation Plan
+
+Update the Vacuum class
+Implement the Algorithm classes
+Update the Simulation class
+Implement the main function
+Set up CMake for building shared objects
+Implement error handling and logging
+Add multithreading support
+Implement the timeout mechanism
+Generate output files and summary

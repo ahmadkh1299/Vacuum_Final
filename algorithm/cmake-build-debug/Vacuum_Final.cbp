@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6"/>
+	<Project>
+		<Option title="Vacuum_Final"/>
+		<Option makefile_is_custom="1"/>
+		<Option compiler="gcc"/>
+		<Option virtualFolders="CMake Files\;"/>
+		<Build>
+			<Target title="all">
+				<Option working_dir="C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 all"/>
+					<CompileFile command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Vacuum_Final">
+				<Option output="C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Vacuum_Final.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/Mariam/Desktop/Vacuum_Final/algorithm"/>
+					<Add directory="C:/Users/Mariam/Desktop/Vacuum_Final/common"/>
+					<Add directory="C:/Users/Mariam/Desktop/Vacuum_Final/simulator"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/include"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/../../../../include"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/../../../../x86_64-w64-mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 Vacuum_Final"/>
+					<CompileFile command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="Vacuum_Final/fast">
+				<Option output="C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Vacuum_Final.exe" prefix_auto="0" extension_auto="0"/>
+				<Option working_dir="C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug"/>
+				<Option object_output="./"/>
+				<Option type="1"/>
+				<Option compiler="gcc"/>
+				<Compiler>
+					<Add directory="C:/Users/Mariam/Desktop/Vacuum_Final/algorithm"/>
+					<Add directory="C:/Users/Mariam/Desktop/Vacuum_Final/common"/>
+					<Add directory="C:/Users/Mariam/Desktop/Vacuum_Final/simulator"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/x86_64-w64-mingw32"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/include/c++/backward"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/include"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/../../../../include"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/include-fixed"/>
+					<Add directory="C:/Program Files/JetBrains/CLion 2023.1.1/bin/mingw/bin/../lib/gcc/x86_64-w64-mingw32/11.2.0/../../../../x86_64-w64-mingw32/include"/>
+				</Compiler>
+				<MakeCommands>
+					<Build command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 Vacuum_Final/fast"/>
+					<CompileFile command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="edit_cache">
+				<Option working_dir="C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 edit_cache"/>
+					<CompileFile command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+			<Target title="rebuild_cache">
+				<Option working_dir="C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug"/>
+				<Option type="4"/>
+				<MakeCommands>
+					<Build command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 rebuild_cache"/>
+					<CompileFile command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 &quot;$file&quot;"/>
+					<Clean command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+					<DistClean command="C:/PROGRA~1/JETBRA~1/CLION2~1.1/bin/mingw/bin/mingw32-make.exe -f &quot;C:/Users/Mariam/Desktop/Vacuum_Final/cmake-build-debug/Makefile&quot;  VERBOSE=1 clean"/>
+				</MakeCommands>
+			</Target>
+		</Build>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/algorithm/AlgorithmDFS.cpp">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/algorithm/AlgorithmDFS.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/algorithm/AlgorithmRegistration.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/algorithm/AlgorithmsBFS.cpp">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/algorithm/AlgorithmsBFS.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/common/AbstractAlgorithm.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/common/AlgorithmRegistrar.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/common/BatteryMeter.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/common/DirtSensor.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/common/PositionUtils.cpp">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/common/PositionUtils.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/common/WallSensor.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/common/enums.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/main.cpp">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/simulator/AlgorithmRegistrar.cpp">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/simulator/ConfigReader.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/simulator/Explorer.cpp">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/simulator/Explorer.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/simulator/House.cpp">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/simulator/House.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/simulator/Simulation.cpp">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/simulator/Simulation.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/simulator/Vacuum.cpp">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/simulator/Vacuum.h">
+			<Option target="Vacuum_Final"/>
+		</Unit>
+		<Unit filename="C:/Users/Mariam/Desktop/Vacuum_Final/CMakeLists.txt">
+			<Option virtualFolder="CMake Files\"/>
+		</Unit>
+	</Project>
+</CodeBlocks_project_file>
