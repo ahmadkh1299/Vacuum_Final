@@ -11,8 +11,8 @@ add_executable(Vacuum_Final
         algorithm/AlgorithmDFS.cpp
         algorithm/AlgorithmDFS.h
         algorithm/AlgorithmRegistration.h
-        algorithm/AlgorithmsBFS.cpp
-        algorithm/AlgorithmsBFS.h
+        algorithm/Algorithm_212346076_207177197_B.cpp
+        algorithm/Algorithm_212346076_207177197_B.h
         common/AbstractAlgorithm.h
         common/AlgorithmRegistrar.h
         common/BatteryMeter.h
