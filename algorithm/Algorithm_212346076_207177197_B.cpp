@@ -3,28 +3,35 @@
 
 REGISTER_ALGORITHM(Algorithm_212346076_207177197_B);
 
-const Position Algorithm_212346076_207177197_B::DOCK_POS = {0, 0};
 
 Algorithm_212346076_207177197_B::Algorithm_212346076_207177197_B()
         : sensors_(nullptr), steps_(0), max_steps_(0), max_battery_(0),
           current_position_(DOCK_POS), current_state_(State::EXPLORE) {
+    explorer_ = Explorer();
+
+}
+
+void Algorithm_212346076_207177197_B::setSensors(SensorImpl &sensors) {
+    sensors_ = &sensors;
+    DOCK_POS = {sensors_->getCurrentPosition().first, sensors_->getCurrentPosition().second};
     explorer_.setDirtLevel(current_position_, static_cast<int>(LocType::Dock));
 }
+
 
 void Algorithm_212346076_207177197_B::setMaxSteps(std::size_t maxSteps) {
     max_steps_ = maxSteps;
 }
 
 void Algorithm_212346076_207177197_B::setWallsSensor(const WallsSensor& wallsSensor) {
-    sensors_ = const_cast<SensorImpl*>(dynamic_cast<const SensorImpl*>(&wallsSensor));
+    setSensors(const_cast<SensorImpl&>(dynamic_cast<const SensorImpl&>(wallsSensor)));
 }
 
 void Algorithm_212346076_207177197_B::setDirtSensor(const DirtSensor& dirtSensor) {
-    sensors_ = const_cast<SensorImpl*>(dynamic_cast<const SensorImpl*>(&dirtSensor));
+    setSensors(const_cast<SensorImpl&>(dynamic_cast<const SensorImpl&>(dirtSensor)));
 }
 
 void Algorithm_212346076_207177197_B::setBatteryMeter(const BatteryMeter& batteryMeter) {
-    sensors_ = const_cast<SensorImpl*>(dynamic_cast<const SensorImpl*>(&batteryMeter));
+    setSensors(const_cast<SensorImpl&>(dynamic_cast<const SensorImpl&>(batteryMeter)));
     max_battery_ = sensors_->getMaxBattery();
 }
 

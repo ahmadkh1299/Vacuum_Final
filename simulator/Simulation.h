@@ -31,7 +31,8 @@ private:
     std::map<std::pair<std::string, std::string>, int> scores; // (houseName, algoName) -> score
     std::mutex scoresMutex;
 
-    void runSimulation(const House& house, std::unique_ptr<AbstractAlgorithm> algo, const std::string& algoName, bool summaryOnly);
+    void runSimulation(const House& house, std::unique_ptr<AbstractAlgorithm> algo, const std::string& algoName,
+                                   int maxSteps, int maxBattery, bool summaryOnly);
     void simulationLoop(House& house, AbstractAlgorithm& algo, Vacuum& vacuum, SensorImpl& sensor,
                         std::atomic<int>& steps, std::atomic<bool>& finished, std::atomic<int>& dirtLeft,
                         std::atomic<bool>& inDock, std::string& stepsString, bool summaryOnly, int maxSteps);

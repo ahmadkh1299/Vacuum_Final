@@ -6,6 +6,9 @@
 #include "Explorer.h"
 #include "../common/PositionUtils.h"
 
+Explorer::Explorer(){
+    
+}
 
 bool Explorer::explored(const Position pos) const {
     return mapped_areas_.count(pos) != 0;

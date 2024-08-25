@@ -43,11 +43,9 @@ enum class State {
     CHARGING,
     TO_DOCK,
     TO_POS, // backtracking
-    WORKING,
     FINISH,
     EXPLORE,
     CLEANING
-
 };
 
 #define MAXIMUM_DIRT 9

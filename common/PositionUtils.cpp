@@ -71,9 +71,6 @@ std::ostream &operator<<(std::ostream &out, const State &state) {
         case State::TO_POS:
             out << "TO_POS";
             break;
-        case State::WORKING:
-            out << "WORKING";
-            break;
         case State::FINISH:
             out << "FINISH";
             break;

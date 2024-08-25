@@ -15,6 +15,7 @@ sensors_(nullptr), max_steps_(0), state_changed(false), curr_state(State::EXPLOR
 void AlgorithmDFS::setSensors(SensorImpl &sensors) {
     sensors_ = &sensors;
     docking_station = {sensors_->getCurrentPosition().first, sensors_->getCurrentPosition().second};
+    explorer_.setDirtLevel(docking_station, static_cast<int>(LocType::Dock));
 }
 
 void AlgorithmDFS::setMaxSteps(std::size_t maxSteps) {

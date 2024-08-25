@@ -101,7 +101,7 @@ int main(int argc, char* argv[]) {
                 houseFiles.push_back(entry.path().string());
             }
         }
-        Simulation::generateSummary(houseFiles, registrar);
+        sim.generateSummary(houseFiles, registrar);
     }
 
     // Clean up

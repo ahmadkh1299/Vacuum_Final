@@ -18,6 +18,8 @@ public:
     void setBatteryMeter(const BatteryMeter&) override;
     Step nextStep() override;
 
+    void setSensors(SensorImpl &sensors);
+
 private:
     SensorImpl* sensors_;
     Explorer explorer_;
@@ -28,7 +30,7 @@ private:
     State current_state_;
     std::stack<Direction> path_to_dock_;
 
-    static const Position DOCK_POS;
+    Position DOCK_POS = {0, 0};
 
     bool shouldFinish();
     void updateExplorerInfo();
