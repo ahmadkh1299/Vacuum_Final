@@ -1,6 +1,11 @@
-#include "Simulation.h"
 #include <iostream>
 #include <string>
+#include <vector>
+#include <filesystem>
+#include <dlfcn.h>
+#include <fstream>
+#include "common/AlgorithmRegistrar.h"
+#include "Simulation.h"
 
 int main(int argc, char* argv[]) {
     std::string housePath;
