@@ -1,7 +1,6 @@
 #include "Algorithm_212346076_207177197_B.h"
 #include "AlgorithmRegistration.h"
 
-REGISTER_ALGORITHM(Algorithm_212346076_207177197_B);
 
 
 Algorithm_212346076_207177197_B::Algorithm_212346076_207177197_B()
@@ -170,4 +169,7 @@ bool Algorithm_212346076_207177197_B::isHouseClean() {
 int Algorithm_212346076_207177197_B::calculateDistanceFromDock() {
     auto path = explorer_.getShortestPath_A({current_position_.r, current_position_.c}, {DOCK_POS.r, DOCK_POS.c}, false);
     return path.size();
+}
+extern "C" {
+    REGISTER_ALGORITHM(Algorithm_212346076_207177197_B);
 }
