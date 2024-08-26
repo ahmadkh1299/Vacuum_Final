@@ -1,4 +1,4 @@
-#include <iostream>
+/*#include <iostream>
 #include <string>
 #include <vector>
 #include <filesystem>
@@ -108,5 +108,100 @@ int main(int argc, char* argv[]) {
     registrar.clear();
     cleanAlgorithms(algoHandles);
 
+    return 0;
+}*/
+#include <iostream>
+#include <filesystem>
+#include <dlfcn.h>
+#include <vector>
+#include <string>
+
+#include "../common/AlgorithmRegistrar.h"
+#include "Simulation.h"
+
+//namespace fs = std::filesystem;
+
+void get_algo_libs(std::vector<void *>& v, const std::string& algoPath)
+{
+    for (const auto& dirent : std::filesystem::directory_iterator(std::filesystem::path(algoPath)))
+    {
+        if (dirent.path().extension() == ".so")
+        {
+            void *library_handle = dlopen(dirent.path().c_str(), RTLD_LAZY);
+            if (!library_handle)
+            {
+                std::cout << "error loading library: " << dlerror() << std::endl;
+                exit(1);
+            }
+
+            v.push_back(library_handle);
+        }
+    }
+}
+
+void clean_algo_libs(std::vector<void *>& v)
+{
+    for (auto& lib_p : v)
+    {
+        dlclose(lib_p);
+    }
+}
+
+std::string getArgValue(int argc, char* argv[], const std::string& arg) {
+    for (int i = 1; i < argc; ++i) {
+        std::string argStr = argv[i];
+        if (argStr.find(arg) == 0) {
+            return argStr.substr(arg.length());
+        }
+    }
+    return "";
+}
+
+int main(int argc, char** argv) 
+{
+    std::string housePath = getArgValue(argc, argv, "-house_path=");
+    std::string algoPath = getArgValue(argc, argv, "-algo_path=");
+    int numThreads = 10;
+    bool summaryOnly = false;
+
+    // Parse command-line arguments
+    for (int i = 1; i < argc; ++i) {
+        std::string arg(argv[i]);
+        if (arg.rfind("-num_threads=", 0) == 0) {
+            numThreads = std::stoi(arg.substr(13));
+        } else if (arg == "-summary_only") {
+            summaryOnly = true;
+        }
+    }
+
+    // Check that required arguments are provided
+    if (housePath.empty() || algoPath.empty()) {
+        std::cerr << "Error: Both -house_path and -algo_path must be provided." << std::endl;
+        return 1;
+    }
+
+    std::vector<void *> algo_libs;
+    get_algo_libs(algo_libs, algoPath);
+
+    AlgorithmRegistrar& registrar = AlgorithmRegistrar::getAlgorithmRegistrar();
+    std::cout << "Running on " << registrar.count() << " algorithms." << std::endl;
+
+    // Create and run simulation
+    Simulation sim;
+    sim.loadHouses(housePath);
+    sim.runSimulations(registrar, numThreads, summaryOnly);
+
+    if (!summaryOnly) {
+        std::vector<std::string> houseFiles;
+        for (const auto& entry : std::filesystem::directory_iterator(housePath)) {
+            if (entry.path().extension() == ".house") {
+                houseFiles.push_back(entry.path().string());
+            }
+        }
+        sim.generateSummary(houseFiles, registrar);
+    }
+
+    registrar.clear();
+    clean_algo_libs(algo_libs);
     return 0;
 }
