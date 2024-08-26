@@ -22,6 +22,9 @@ function(add_algorithm_library NAME)
         simulator/AlgorithmRegistrar.cpp
         common/PositionUtils.cpp
         common/SensorImpl.cpp
+        simulator/Vacuum.cpp
+
+
     )
     target_include_directories(${NAME} PUBLIC ${INCLUDE_DIRS})
     set_target_properties(${NAME} PROPERTIES PREFIX "")
