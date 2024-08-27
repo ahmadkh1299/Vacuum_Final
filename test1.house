@@ -1,0 +1,10 @@
+Example House
+MaxSteps = 100
+MaxBattery = 20
+Rows = 5
+Cols = 5
+WWWWW
+W D W
+W 1 W
+W 2 W
+WWWWW

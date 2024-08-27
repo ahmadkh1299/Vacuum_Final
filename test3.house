@@ -1,0 +1,11 @@
+Medium house with multiple rooms
+MaxSteps = 200
+MaxBattery = 50
+Rows = 6
+Cols = 12
+WWWWWWWWWWWW
+W        1 W
+W D      9 W
+W  3      W
+W  456    W
+WWWWWWWWWWWW

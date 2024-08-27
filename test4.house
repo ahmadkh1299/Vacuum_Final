@@ -1,0 +1,13 @@
+Large house with complex layout
+MaxSteps=500
+MaxBattery=100
+Rows=8
+Cols=15
+WWWWWWWWWWWWWWW
+W     1234    W
+W  D    5     W
+W     6789    W
+W             W
+W   123       W
+W   456789    W
+WWWWWWWWWWWWWWW
