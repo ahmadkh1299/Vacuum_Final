@@ -23,7 +23,8 @@ function(add_algorithm_library NAME)
         common/PositionUtils.cpp
         common/SensorImpl.cpp
         simulator/Vacuum.cpp
-
+        simulator/ConfigReader.h
+        simulator/Simulation.cpp
 
     )
     target_include_directories(${NAME} PUBLIC ${INCLUDE_DIRS})
@@ -44,6 +45,8 @@ add_executable(main
     simulator/Explorer.cpp
     common/PositionUtils.cpp
     common/SensorImpl.cpp
+    simulator/ConfigReader.h
+
 )
 
 # Find and link pthread
