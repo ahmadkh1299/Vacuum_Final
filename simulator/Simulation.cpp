@@ -100,7 +100,7 @@ Simulation::SimulationResult Simulation::simulateAlgorithm(House& house, Abstrac
             sensor.useBattery();
         }
 
-        if (step == Step::Finish || (house.isHouseClean() && result.inDock)) {
+        if (step == Step::Finish && (house.isHouseClean() && result.inDock)) {
             result.finished = true;
         }
 

@@ -69,7 +69,7 @@ private:
 
     Explorer explorer_;
 
-    bool state_changed;
+    State prev_state;
 
     State curr_state;
 

@@ -4,7 +4,7 @@
 #include <stdexcept>
 
 House::House(const std::vector<std::string>& layout_v, const std::string& name)
-        : dockingStation({-1, -1}), total_dirt(0), house_name(name) {  // Save the house name
+        : dockingStation({-1, -1}), total_dirt(0), house_name(name),dirt_count(0) {  // Save the house name
     std::vector<std::string> padded_layout = layout_v;
     addWallsPadding(padded_layout);
     initializeMatrix(padded_layout);
@@ -42,19 +42,39 @@ void House::initializeMatrix(const std::vector<std::string>& layout_v) {
         for (int j = 0; j < cols; ++j) {
             char cell = layout_v[i][j];
             if (cell == 'W') {
-                house_matrix[i][j] = -1;
+                house_matrix[i][j] = -1; // Wall
             } else if (cell >= '1' && cell <= '9') {
-                house_matrix[i][j] = cell - '0';
-                total_dirt += house_matrix[i][j];
+                house_matrix[i][j] = cell - '0'; // Dirt level
+
+                // Check if the cell is not surrounded by walls
+                bool surrounded_by_walls = true;
+                std::vector<Position> neighbors = {
+                        {i-1, j}, {i+1, j}, {i, j-1}, {i, j+1}
+                };
+
+                for (const auto& neighbor : neighbors) {
+                    if (neighbor.r >= 0 && neighbor.r < rows &&
+                        neighbor.c >= 0 && neighbor.c < cols &&
+                        layout_v[neighbor.r][neighbor.c] != 'W') {
+                        surrounded_by_walls = false;
+                        break;
+                    }
+                }
+
+                // Only add the dirt to total_dirt if not surrounded by walls
+                if (!surrounded_by_walls) {
+                    total_dirt += house_matrix[i][j];
+                }
             } else if (cell == 'D') {
                 dockingStation = {i, j};
-                house_matrix[i][j] = -20;
+                house_matrix[i][j] = -20; // Docking station
             } else {
-                house_matrix[i][j] = 0;
+                house_matrix[i][j] = 0; // Empty space
             }
         }
     }
 }
+
 
 void House::findDockingStation() {
     if (dockingStation.r == -1 || dockingStation.c == -1) {
@@ -63,11 +83,11 @@ void House::findDockingStation() {
 }
 
 void House::updateDirtCount() {
-    total_dirt = 0;
+    dirt_count = 0;
     for (const auto& row : house_matrix) {
         for (int cell : row) {
             if (cell > 0 && cell < 20) {
-                total_dirt += cell;
+                dirt_count += cell;
             }
         }
     }

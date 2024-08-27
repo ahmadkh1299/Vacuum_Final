@@ -51,7 +51,7 @@ enum class State {
 #define MAXIMUM_DIRT 9
 enum class LocType {
     Wall = -1,
-    Dock = 100,
+    Dock = -20,
 };
 
 

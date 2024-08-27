@@ -36,6 +36,7 @@ private:
     int cols;
     Position dockingStation;
     int total_dirt;
+    int dirt_count;
     std::string house_name;
 
 
