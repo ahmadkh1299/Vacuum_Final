@@ -48,6 +48,19 @@ enum class State {
     CLEANING
 };
 
+std::ostream& operator<<(std::ostream& os, const State& state) {
+    switch (state) {
+        case State::CHARGING: os << "CHARGING"; break;
+        case State::TO_DOCK: os << "TO_DOCK"; break;
+        case State::TO_POS: os << "TO_POS"; break;
+        case State::FINISH: os << "FINISH"; break;
+        case State::EXPLORE: os << "EXPLORE"; break;
+        case State::CLEANING: os << "CLEANING"; break;
+        default: os << "UNKNOWN_STATE"; break;
+    }
+    return os;
+}
+
 #define MAXIMUM_DIRT 9
 enum class LocType {
     Wall = -1,

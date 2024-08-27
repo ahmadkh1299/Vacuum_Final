@@ -66,6 +66,8 @@ int AlgorithmDFS::getMinDistanceOfNeighbors(const Position& curr_pos) {
 }
 
 Step AlgorithmDFS::nextStep() {
+    // print current state
+    std::cout << "Current state: " << curr_state << std::endl;
     Position curr_pos = {sensors_->getCurrentPosition().first, sensors_->getCurrentPosition().second};
     switch (curr_state) {
         case State::EXPLORE: {
@@ -83,8 +85,8 @@ Step AlgorithmDFS::nextStep() {
                 }
             }
             if (explorer_.getDistance(curr_pos) >= sensors_->getBatteryState() || !explorer_.hasMoreDirtyAreas()) {
-                curr_state = State::TO_DOCK;
                 prev_state = curr_state;
+                curr_state = State::TO_DOCK;
                 break;
             }
         }
