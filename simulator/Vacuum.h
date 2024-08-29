@@ -30,6 +30,7 @@ public:
     // Returns the current position of the vacuum
     Position getPosition() const;
 
+    void setBattery(int battery) {curr_battery = battery;}
 
     bool atDockingStation() const;
 

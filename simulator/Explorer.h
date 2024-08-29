@@ -28,7 +28,7 @@ public:
     bool isAreaUnexplored(const Position pos);
     void removeFromUnexplored(const Position pos);
     void updateAdjacentArea(Direction dir, Position position, bool isWall);
-
+    Position getClosestUnexploredArea(Position position);
     bool hasMoreDirtyAreas() const;
 
     std::stack<Direction> getShortestPath(std::pair<int, int> src,
@@ -36,8 +36,8 @@ public:
                                           bool search);
 
     std::stack<Direction> getShortestPath_A(std::pair<int, int> src,
-                                          std::pair<int, int> dst,
-                                          bool search);
+                                            std::pair<int, int> dst,
+                                            bool search);
 
     std::vector<std::pair<int, int>> getNeighbors(std::pair<int, int> point);
 

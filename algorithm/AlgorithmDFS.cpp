@@ -106,6 +106,11 @@ std::string AlgorithmDFS::stateToString(State state) {
 Step AlgorithmDFS::nextStep() {
     std::cout << "curr_state: " << stateToString(curr_state) << std::endl;
     Position curr_pos = {sensors_->getCurrentPosition().first, sensors_->getCurrentPosition().second};
+    auto path = explorer_.getShortestPath_A(sensors_->getCurrentPosition(),
+                                            {docking_station.r, docking_station.c}, false);
+    if(path.size() >= (max_steps_ - steps_counter)){
+        curr_state = State::TO_DOCK;
+    }
     Position possible_pos = curr_pos;
     switch (curr_state) {
         case State::EXPLORE: {
@@ -115,7 +120,7 @@ Step AlgorithmDFS::nextStep() {
                 return nextStep();
             }
             if(curr_pos != docking_station) {
-                if (explorer_.getDistance(curr_pos) >= sensors_->getBatteryState()){
+                if (explorer_.getDistance(curr_pos) >= sensors_->getBatteryState() - 1){
                     curr_state = State::TO_DOCK;
                     return nextStep();
                 }
@@ -123,10 +128,16 @@ Step AlgorithmDFS::nextStep() {
             for (Direction dir: PositionUtils::getDirectionOrder()) {
                 possible_pos = curr_pos;
                 updatePosition(Step(dir), possible_pos);
-                if (sensors_->isWall(dir) || explorer_.explored(possible_pos)) continue;
+                if (sensors_->isWall(dir) || explorer_.explored(possible_pos)){
+                    continue;
+                }
+                steps_counter++;
                 return Step(dir);
             }
-            curr_state = State::TO_DOCK;
+            if(!explorer_.areAllAreasExplored()){
+                last_dirty_pos_ = {explorer_.getClosestUnexploredArea(curr_pos).r, explorer_.getClosestUnexploredArea(curr_pos).c};
+                curr_state = State::TO_POS;
+            }else curr_state = State::TO_DOCK;
             return nextStep();
             break;
         }
@@ -139,19 +150,13 @@ Step AlgorithmDFS::nextStep() {
             if (!path.empty()) {
                 Step next = Step(path.top());
                 path.pop();
+                steps_counter++;
                 return next;
             }
             if (explorer_.isDockingStation(curr_pos)) {
-                if(!explorer_.hasMoreDirtyAreas()){
-                    path = explorer_.getShortestPath_A(sensors_->getCurrentPosition(),{docking_station.r, docking_station.c}, true);
-                }
-                if (path.empty()) {
-                    curr_state = State::FINISH;
-                    return nextStep();
-                } else {
-                    curr_state = State::CHARGING;
-                    return Step::Stay;
-                }
+                curr_state = State::CHARGING;
+                steps_counter++;
+                return Step::Stay;
             }
             break;
         }
@@ -169,9 +174,14 @@ Step AlgorithmDFS::nextStep() {
             }else {
                 path = explorer_.getShortestPath_A(sensors_->getCurrentPosition(), last_dirty_pos_, false);
             }
+            if (path.size() >= sensors_->getBatteryState()-2) {
+                curr_state = State::TO_DOCK;
+                return nextStep();
+            }
             if (!path.empty()) {
                 Step next = Step(path.top());
                 path.pop();
+                steps_counter++;
                 return next;
             }
             curr_state = (sensors_->dirtLevel() > 0) ? State::CLEANING : State::EXPLORE;
@@ -190,6 +200,7 @@ Step AlgorithmDFS::nextStep() {
                 } else last_dirty_pos_ = {-20, -20};
                 Step s = Step(path.top());
                 path.pop();
+                steps_counter++;
                 return s;
             }
             if (sensors_->dirtLevel() == 0) {
@@ -197,6 +208,7 @@ Step AlgorithmDFS::nextStep() {
                 return nextStep();
             }
             explorer_.updateDirtAndClean(curr_pos, sensors_->dirtLevel());
+            steps_counter++;
             return Step::Stay;
         }
 
@@ -206,18 +218,20 @@ Step AlgorithmDFS::nextStep() {
                 curr_state = State::TO_POS;
                 return nextStep();
             }
+            steps_counter++;
             return Step::Stay;
         }
 
         case State::FINISH: {
-            if (StateChanged()) {
+            break;
+/*            if (StateChanged()) {
                 prev_state = curr_state;
                 return Step::Finish;
             } else {
                 prev_state = curr_state;
                 curr_state = State::EXPLORE;
                 return nextStep();
-            }
+            }*/
         }
     }
     return Step::Stay;  // Default fallback

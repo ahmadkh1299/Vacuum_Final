@@ -83,6 +83,12 @@ Simulation::SimulationResult Simulation::simulateAlgorithm(House& house, Abstrac
     algo.setBatteryMeter(sensor);
 
     while (result.steps < maxSteps && !result.finished) {
+        if(house.isHouseClean() && result.inDock) {
+            result.finished = true;
+            result.stepsString+= stepToString(Step::Finish);
+            std::cout << "House is clean, simulation finished" << std::endl;
+            break;
+        }
         Step step = algo.nextStep();
         result.stepsString += stepToString(step);
 
@@ -100,20 +106,19 @@ Simulation::SimulationResult Simulation::simulateAlgorithm(House& house, Abstrac
             }
             if (result.inDock) {
                 sensor.chargeBattery();
-                vacuum.charge();
+                vacuum.setBattery(sensor.getBatteryState());
             }
         }
         if (step !=Step::Stay && !result.inDock) {
             sensor.useBattery();
         }
 
-        if (step == Step::Finish && (house.isHouseClean() && result.inDock)) {
+        if (step == Step::Finish) {
             result.finished = true;
         }
 
         result.steps++;
     }
-
     return result;
 }
 

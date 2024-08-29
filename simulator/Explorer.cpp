@@ -7,7 +7,7 @@
 #include "../common/PositionUtils.h"
 
 Explorer::Explorer(){
-    
+
 }
 
 bool Explorer::explored(const Position pos) const {
@@ -31,7 +31,7 @@ int Explorer::getDistance(const Position pos) {
 
 // Set the distance from the docking station to a specific position
 void Explorer::setDistance(const Position pos, int distance) {
-        mapped_areas_[pos].second = distance;
+    mapped_areas_[pos].second = distance;
 }
 
 
@@ -40,7 +40,6 @@ void Explorer::setDirtLevel(const Position pos, int dirtLevel) {
     if (mapped_areas_.count(pos) != 0 && mapped_areas_[pos].first > 0 && mapped_areas_[pos].first <= MAXIMUM_DIRT) {
         total_dirt_ -= mapped_areas_[pos].first;
     }
-
     mapped_areas_[pos].first = dirtLevel;
     total_dirt_ += (dirtLevel >= 0 && dirtLevel <= MAXIMUM_DIRT) ? dirtLevel : 0;
 }
@@ -261,4 +260,18 @@ std::vector<std::pair<int, int>> Explorer::getNeighbors(std::pair<int, int> poin
         }
     }
     return neighbors;
+}
+
+Position Explorer::getClosestUnexploredArea(Position position) {
+    int Dist = 0;
+    int min = INT_MAX;
+    Position pos = {-20, -20};
+    for (const auto& area : unexplored_areas_) {
+        Dist = getShortestPath_A({position.r, position.c}, {area.first.r, area.first.c}, false).size();
+        if (Dist < min) {
+            min = Dist;
+            pos = area.first;
+        }
+    }
+    return pos;
 }

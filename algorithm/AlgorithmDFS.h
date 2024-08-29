@@ -64,13 +64,12 @@ public:
 private:
 
     int max_steps_;
-
+    int steps_counter = 0;
     SensorImpl* sensors_;
 
     Explorer explorer_;
 
     State prev_state;
-
     State curr_state;
 
     Position docking_station = {0, 0};
