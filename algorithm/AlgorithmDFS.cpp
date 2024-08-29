@@ -10,14 +10,13 @@
 #include "AlgorithmRegistration.h"
 
 AlgorithmDFS::AlgorithmDFS() :
-sensors_(nullptr), max_steps_(0), prev_state(State::EXPLORE), curr_state(State::EXPLORE) {
+        sensors_(nullptr), max_steps_(0), prev_state(State::EXPLORE), curr_state(State::EXPLORE) {
     explorer_ = Explorer();
 }
 
 void AlgorithmDFS::setSensors(SensorImpl &sensors) {
     sensors_ = &sensors;
     docking_station = {sensors_->getCurrentPosition().first, sensors_->getCurrentPosition().second};
-    explorer_.setDirtLevel(docking_station, static_cast<int>(LocType::Dock));
 }
 
 void AlgorithmDFS::setMaxSteps(std::size_t maxSteps) {
@@ -45,6 +44,7 @@ State AlgorithmDFS::getCurrentState() const {
 }
 
 int AlgorithmDFS::getMinDistanceOfNeighbors(const Position& curr_pos) {
+    if (curr_pos == docking_station) return 0;
     int minDistance = INT_MAX;
     std::vector<std::pair<int, int>> neighbors = explorer_.getNeighbors({curr_pos.r, curr_pos.c});
 
@@ -52,8 +52,8 @@ int AlgorithmDFS::getMinDistanceOfNeighbors(const Position& curr_pos) {
         Position neighbor = {neighborPair.first, neighborPair.second};
         if (explorer_.explored(neighbor)) {
             int neighborDistance = explorer_.getDistance(neighbor);
-            if (neighborDistance < minDistance) {
-                minDistance = neighborDistance;
+            if (neighborDistance+1 < minDistance) {
+                minDistance = neighborDistance + 1;
             }
         }
     }
@@ -62,80 +62,128 @@ int AlgorithmDFS::getMinDistanceOfNeighbors(const Position& curr_pos) {
         // None of the neighbors are explored. Handle this case accordingly.
         return -1;  // or any other default value
     }
-    return minDistance + 1;
+    return minDistance;
 }
 
+void AlgorithmDFS::updateExplorerInfo(Position current_position_) {
+    if (!explorer_.explored(current_position_)) {
+        explorer_.setDirtLevel(current_position_, sensors_->dirtLevel());
+        explorer_.setDistance(current_position_, getMinDistanceOfNeighbors(current_position_));
+        explorer_.removeFromUnexplored(current_position_);
+
+        // Update adjacent areas for newly explored positions
+        for (const auto& dir : {Direction::North, Direction::East, Direction::South, Direction::West}) {
+            explorer_.updateAdjacentArea(dir, current_position_, sensors_->isWall(dir));
+        }
+    } else {
+        explorer_.updateDirtAndClean(current_position_, sensors_->dirtLevel());
+    }
+}
+
+void AlgorithmDFS::updatePosition(Step stepDirection, Position& current_position_) {
+    switch (stepDirection) {
+        case Step::North: current_position_.r--; break;
+        case Step::East:  current_position_.c++; break;
+        case Step::South: current_position_.r++; break;
+        case Step::West:  current_position_.c--; break;
+        case Step::Stay: break;
+        case Step::Finish: break;
+    }
+}
+//function state to string
+
+std::string AlgorithmDFS::stateToString(State state) {
+    switch (state) {
+        case State::EXPLORE: return "EXPLORE";
+        case State::TO_DOCK: return "TO_DOCK";
+        case State::TO_POS: return "TO_POS";
+        case State::CLEANING: return "CLEANING";
+        case State::CHARGING: return "CHARGING";
+        case State::FINISH: return "FINISH";
+        default: return "?";
+    }
+}
 Step AlgorithmDFS::nextStep() {
-    // print current state
-    std::cout << "Current state: " << curr_state << std::endl;
+    std::cout << "curr_state: " << stateToString(curr_state) << std::endl;
     Position curr_pos = {sensors_->getCurrentPosition().first, sensors_->getCurrentPosition().second};
+    Position possible_pos = curr_pos;
     switch (curr_state) {
         case State::EXPLORE: {
-            for (Direction dir: PositionUtils::getDirectionOrder()) {
-                sensors_->updatePosition(Step(dir));
-                curr_pos = {sensors_->getCurrentPosition().first, sensors_->getCurrentPosition().second};
-                if (!explorer_.explored(curr_pos) && !sensors_->isWall(dir)) {
-                    explorer_.setDirtLevel(curr_pos, sensors_->dirtLevel());
-                    explorer_.setDistance(curr_pos, getMinDistanceOfNeighbors(curr_pos));
-                    if (sensors_->dirtLevel() > 0) {
-                        curr_state = State::CLEANING;
-                    }
-                    prev_state = curr_state;
-                    return Step(dir);
+            updateExplorerInfo(curr_pos);
+            if (sensors_->dirtLevel() > 0) {
+                curr_state = State::CLEANING;
+                return nextStep();
+            }
+            if(curr_pos != docking_station) {
+                if (explorer_.getDistance(curr_pos) >= sensors_->getBatteryState()){
+                    curr_state = State::TO_DOCK;
+                    return nextStep();
                 }
             }
-            if (explorer_.getDistance(curr_pos) >= sensors_->getBatteryState() || !explorer_.hasMoreDirtyAreas()) {
-                prev_state = curr_state;
-                curr_state = State::TO_DOCK;
-                break;
+            for (Direction dir: PositionUtils::getDirectionOrder()) {
+                possible_pos = curr_pos;
+                updatePosition(Step(dir), possible_pos);
+                if (sensors_->isWall(dir) || explorer_.explored(possible_pos)) continue;
+                return Step(dir);
             }
+            curr_state = State::TO_DOCK;
+            return nextStep();
+            break;
         }
 
         case State::TO_DOCK: {
+            prev_state = curr_state;
+            explorer_.setDistance(curr_pos, getMinDistanceOfNeighbors(curr_pos));
             auto path = explorer_.getShortestPath_A(sensors_->getCurrentPosition(),
                                                     {docking_station.r, docking_station.c}, false);
             if (!path.empty()) {
                 Step next = Step(path.top());
                 path.pop();
-                sensors_->updatePosition(next);
-                curr_pos = {sensors_->getCurrentPosition().first, sensors_->getCurrentPosition().second};
-                explorer_.setDistance(curr_pos, getMinDistanceOfNeighbors(curr_pos));
-                if (explorer_.isDockingStation(curr_pos)) {
-                    curr_state = explorer_.hasMoreDirtyAreas() ? State::CHARGING : State::FINISH;
-                }
-                prev_state = curr_state;
                 return next;
+            }
+            if (explorer_.isDockingStation(curr_pos)) {
+                if(!explorer_.hasMoreDirtyAreas()){
+                    path = explorer_.getShortestPath_A(sensors_->getCurrentPosition(),{docking_station.r, docking_station.c}, true);
+                }
+                if (path.empty()) {
+                    curr_state = State::FINISH;
+                    return nextStep();
+                } else {
+                    curr_state = State::CHARGING;
+                    return Step::Stay;
+                }
             }
             break;
         }
 
         case State::TO_POS: {
+            prev_state = curr_state;
+            std::stack<Direction> path;
             if (last_dirty_pos_ == std::make_pair(-20, -20)) {
-                prev_state = curr_state;
-                curr_state = State::EXPLORE;
-                return nextStep();
+                if (explorer_.explored(curr_pos)) {
+                    path = explorer_.getShortestPath_A(sensors_->getCurrentPosition(), last_dirty_pos_, true);
+                } else{
+                    curr_state = State::EXPLORE;
+                    return nextStep();
+                }
+            }else {
+                path = explorer_.getShortestPath_A(sensors_->getCurrentPosition(), last_dirty_pos_, false);
             }
-            auto path = explorer_.getShortestPath_A(sensors_->getCurrentPosition(), last_dirty_pos_, true);
             if (!path.empty()) {
                 Step next = Step(path.top());
                 path.pop();
-                sensors_->updatePosition(next);
-                curr_pos = {sensors_->getCurrentPosition().first, sensors_->getCurrentPosition().second};
-                explorer_.setDistance(curr_pos, getMinDistanceOfNeighbors(curr_pos));
-                if (sensors_->getCurrentPosition() == last_dirty_pos_) {
-                    curr_state = (sensors_->dirtLevel() > 0) ? State::CLEANING : State::EXPLORE;
-                }
-                prev_state = curr_state;
                 return next;
             }
+            curr_state = (sensors_->dirtLevel() > 0) ? State::CLEANING : State::EXPLORE;
+            return nextStep();
             break;
         }
 
         case State::CLEANING: {
+            prev_state = curr_state;
             std::pair<int, int> dock = {docking_station.r, docking_station.c};
             auto path = explorer_.getShortestPath_A(sensors_->getCurrentPosition(), dock, false);
-            if (path.size() == sensors_->getBatteryState() - 2) {
-                prev_state = curr_state;
+            if (path.size() >= sensors_->getBatteryState() - 2) {
                 curr_state = State::TO_DOCK;
                 if (sensors_->dirtLevel() > 0) {
                     last_dirty_pos_ = sensors_->getCurrentPosition();
@@ -145,22 +193,19 @@ Step AlgorithmDFS::nextStep() {
                 return s;
             }
             if (sensors_->dirtLevel() == 0) {
-                prev_state = curr_state;
                 curr_state = State::EXPLORE;
                 return nextStep();
             }
-            prev_state = curr_state;
-            explorer_.updateDirtAndClean(curr_pos, sensors_->dirtLevel() - 1);
+            explorer_.updateDirtAndClean(curr_pos, sensors_->dirtLevel());
             return Step::Stay;
         }
 
         case State::CHARGING: {
+            prev_state = curr_state;
             if (sensors_->getBatteryState() == sensors_->getMaxBattery()) {
-                prev_state = curr_state;
                 curr_state = State::TO_POS;
                 return nextStep();
             }
-            prev_state = curr_state;
             return Step::Stay;
         }
 
@@ -181,9 +226,7 @@ Step AlgorithmDFS::nextStep() {
 
 
 extern "C" {
-
-    REGISTER_ALGORITHM(AlgorithmDFS);
-
+REGISTER_ALGORITHM(AlgorithmDFS);
 }
 
 

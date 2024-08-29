@@ -6,7 +6,10 @@
 
 
 SensorImpl::SensorImpl(const House& house, int maxBattery)
-        : house(house), currentRow(0), currentCol(0), batteryLevel(maxBattery), maxBattery(maxBattery) {}
+        : house(house), currentRow(0), currentCol(0), batteryLevel(maxBattery), maxBattery(maxBattery) {
+    currentCol = house.getDockingStation().c;
+    currentRow = house.getDockingStation().r;
+}
 
 
 
@@ -49,8 +52,15 @@ std::pair<int,int> SensorImpl::getCurrentPosition() const {
 
 void SensorImpl::useBattery() {
     batteryLevel--;
+    std::cout << "Battery level: " << batteryLevel << std::endl;
 }
 
 std::size_t SensorImpl::getMaxBattery() const {
     return maxBattery;
+}
+
+void SensorImpl::chargeBattery() {
+    float amount = maxBattery * 0.05;
+    batteryLevel += amount;
+    batteryLevel = std::min(batteryLevel, (float)maxBattery);
 }

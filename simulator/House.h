@@ -14,7 +14,7 @@ public:
     int getCols() const;
     Position getDockingStation() const;
     int getCell(const Position& pos) const;
-
+    void printHouseMatrix() const;
     // Methods for assignment 3
     bool isWall(const Position& pos) const;
     int getDirtLevel(const Position& pos) const;

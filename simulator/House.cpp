@@ -6,7 +6,7 @@
 House::House(const std::vector<std::string>& layout_v, const std::string& name)
         : dockingStation({-1, -1}), total_dirt(0), house_name(name),dirt_count(0) {  // Save the house name
     std::vector<std::string> padded_layout = layout_v;
-    addWallsPadding(padded_layout);
+    //addWallsPadding(padded_layout);
     initializeMatrix(padded_layout);
     findDockingStation();
     updateDirtCount();
@@ -67,6 +67,7 @@ void House::initializeMatrix(const std::vector<std::string>& layout_v) {
                 }
             } else if (cell == 'D') {
                 dockingStation = {i, j};
+                std::cout << "Docking station found at (" << i << ", " << j << ")" << std::endl;
                 house_matrix[i][j] = -20; // Docking station
             } else {
                 house_matrix[i][j] = 0; // Empty space
@@ -112,6 +113,31 @@ int House::getCell(const Position& pos) const {
     return house_matrix[pos.r][pos.c];
 }
 
+void House::printHouseMatrix() const {
+    std::cout << "House Matrix:" << std::endl;
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            char displayChar;
+            switch(house_matrix[i][j]) {
+                case -1:
+                    displayChar = 'W';  // Wall
+                    break;
+                case -20:
+                    displayChar = 'D';  // Docking station
+                    break;
+                case 0:
+                    displayChar = '0';  // Empty space
+                    break;
+                default:
+                    displayChar = '0' + house_matrix[i][j];  // Dirt level (1-9)
+                    break;
+            }
+            std::cout << displayChar << ' ';
+        }
+        std::cout << std::endl;
+    }
+}
+
 std::string House::getName() const {
     return house_name;
 }
@@ -122,12 +148,17 @@ bool House::isWall(const Position& pos) const {
 
 int House::getDirtLevel(const Position& pos) const {
     int cell = getCell(pos);
+    if (pos == dockingStation) {
+        return -20;
+    }
     return (cell > 0 && cell < 20) ? cell : 0;
 }
 
 void House::cleanCell(const Position& pos) {
     if (pos.r >= 0 && pos.r < rows && pos.c >= 0 && pos.c < cols) {
         if (house_matrix[pos.r][pos.c] > 0 && house_matrix[pos.r][pos.c] < 10) {
+            std::cout << "Cleaned cell at (" << pos.r << ", " << pos.c
+                      << "). dirt level: " << house_matrix[pos.r][pos.c] << std::endl;
             house_matrix[pos.r][pos.c]--;
             total_dirt--;
             std::cout << "Cleaned cell at (" << pos.r << ", " << pos.c

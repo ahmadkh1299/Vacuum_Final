@@ -91,12 +91,19 @@ Simulation::SimulationResult Simulation::simulateAlgorithm(House& house, Abstrac
         result.inDock = vacuum.atDockingStation();
 
         Position currentPos = vacuum.getPosition();
-        if (house.getDirtLevel(currentPos) > 0) {
-            house.cleanCell(currentPos);
-            result.dirtLeft = house.getTotalDirt();
+        std::cout << "currentPos: " << currentPos.r << ", " << currentPos.c << std::endl;
+        if (step == Step::Stay) {
+            if (house.getDirtLevel(currentPos) > 0) {
+                house.cleanCell(currentPos);
+                sensor.useBattery();
+                result.dirtLeft = house.getTotalDirt();
+            }
+            if (result.inDock) {
+                sensor.chargeBattery();
+                vacuum.charge();
+            }
         }
-
-        if (!result.inDock) {
+        if (step !=Step::Stay && !result.inDock) {
             sensor.useBattery();
         }
 

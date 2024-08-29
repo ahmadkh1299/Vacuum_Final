@@ -77,11 +77,15 @@ private:
 
     std::pair<int,int> last_dirty_pos_ = {-20, -20};
 
-
+    void updateExplorerInfo(Position current_position_);
 
     int getMinDistanceOfNeighbors(const Position& curr_pos);
 
-    };
+    void updatePosition(Step stepDirection, Position& curr_pos);
+
+    std::string stateToString(State state);
+
+};
 
 
 

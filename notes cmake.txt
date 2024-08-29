@@ -4,7 +4,7 @@ mkdir build
 cmake -S . -B ./build
 cmake --build ./build
 cd build
-./main -house_path=/home/student/Desktop/Vacuum_Final/houses -algo_path=/home/student/Desktop/Vacuum_Final/build
+./main -house_path=/home/student/Desktop/Vacuum_Final/houses -algo_path=/home/student/Desktop/Vacuum_Final/buildmk
 cd build
 cmake ..
 make
