@@ -8,7 +8,6 @@
 
 struct AlgorithmRegistration {
     AlgorithmRegistration(const std::string& name, AlgorithmFactory algorithmFactory) {
-        std::cout << "Registering algorithm: " << name << std::endl;
         AlgorithmRegistrar::getAlgorithmRegistrar().registerAlgorithm(name, std::move(algorithmFactory));
     }
 };
