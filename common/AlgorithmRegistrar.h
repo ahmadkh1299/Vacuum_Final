@@ -30,9 +30,7 @@ public:
     // NOTE: API is guaranteed, actual implementation may change
     static AlgorithmRegistrar &getAlgorithmRegistrar();
 
-    void registerAlgorithm(const std::string &name, AlgorithmFactory algorithmFactory) {
-        algorithms.emplace_back(name, std::move(algorithmFactory));
-    }
+    void registerAlgorithm(const std::string &name, AlgorithmFactory algorithmFactory);
 
     auto begin() const { return algorithms.begin(); }
 

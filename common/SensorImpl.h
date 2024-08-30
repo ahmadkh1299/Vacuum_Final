@@ -32,13 +32,13 @@ public:
     void updatePosition(Step stepDirection);
     void useBattery();
     std::size_t getMaxBattery() const;
-
+    void chargeBattery();
 
 private:
     const House& house;
     int currentRow;
     int currentCol;
-    int batteryLevel;
+    float batteryLevel;
     int maxBattery;
 };
 
