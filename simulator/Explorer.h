@@ -10,6 +10,11 @@
 #include "../common/states.h"
 #include "../common/enums.h"
 #include "../common/PositionUtils.h"
+#include <climits>
+
+
+
+#include <set>
 
 class Explorer {
 public:
@@ -25,6 +30,13 @@ public:
     void performCleaning(const Position pos);
     void updateDirtAndClean(const Position pos, int dirtLevel);
     bool areAllAreasExplored();
+     std::vector<Position> getUnexploredAreas() const {
+        std::vector<Position> unexplored;
+        for (const auto& [pos, _] : unexplored_areas_) {
+            unexplored.push_back(pos);
+        }
+        return unexplored;
+    }
     bool isAreaUnexplored(const Position pos);
     void removeFromUnexplored(const Position pos);
     void updateAdjacentArea(Direction dir, Position position, bool isWall);
@@ -39,11 +51,23 @@ public:
                                           std::pair<int, int> dst,
                                           bool search);
 
+    int manhattanDistance(const Position &a, const Position &b);
+
+    std::stack<Direction> reconstructPath(const std::map<Position, Position> &parent, Position current, Position start);
+
+    //int heuristic(const Position &a, const Position &b) const;
+
+    //bool isValidPosition(const Position &pos) const;
+    //std::stack<Direction> reconstructPath(const std::map<Position, Position> &cameFrom, const Position &current, const Position &start) const;
+
     std::vector<std::pair<int, int>> getNeighbors(std::pair<int, int> point);
+    Position getClosestUnexploredArea(Position position);
+    std::stack<Direction> findPathToDock(const Position &start, const Position &dock);
+    std::map<Position, std::pair<int, int>> mapped_areas_; // first: dirt level, second: curr distance from docking station
+    std::map<Position, bool> unexplored_areas_;
 
 private:
-    std::map<Position, std::pair<int,int>> mapped_areas_; // first: dirt level, second: curr distance from docking station
-    std::map<Position, bool> unexplored_areas_;
+    
     int total_dirt_;
 };
 

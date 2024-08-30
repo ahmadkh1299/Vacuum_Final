@@ -14,7 +14,7 @@ public:
     int getCols() const;
     Position getDockingStation() const;
     int getCell(const Position& pos) const;
-
+    void printHouseMatrix() const;
     // Methods for assignment 3
     bool isWall(const Position& pos) const;
     int getDirtLevel(const Position& pos) const;
@@ -36,6 +36,7 @@ private:
     int cols;
     Position dockingStation;
     int total_dirt;
+    int dirt_count;
     std::string house_name;
 
 

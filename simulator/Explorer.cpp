@@ -103,6 +103,7 @@ void Explorer::updateAdjacentArea(Direction dir, Position position, bool isWall)
         }
     }
 }
+
 //function to find the path from src to dst using A* algorithm, or to the closest dirt/unexplored area if search is true
 std::stack<Direction> Explorer::getShortestPath_A(std::pair<int, int> src, std::pair<int, int> dst, bool search) {
     std::stack<Direction> path;
@@ -185,8 +186,13 @@ std::stack<Direction> Explorer::getShortestPath_A(std::pair<int, int> src, std::
             break;
         }
     }
+    if (path.empty()) {
+        // Log this event or handle it appropriately
+        std::cerr << "Warning: Empty path returned for src: (" << src.first << "," << src.second 
+                  << ") to dst: (" << dst.first << "," << dst.second << ")" << std::endl;
+    }
     return path;
-}
+    } 
 // Get the shortest path from source to destination, or to the closest dirt/unexplored area if search is true
 std::stack<Direction> Explorer::getShortestPath(std::pair<int, int> src, std::pair<int, int> dst, bool search) {
     std::stack<Direction> path;
@@ -232,8 +238,12 @@ std::stack<Direction> Explorer::getShortestPath(std::pair<int, int> src, std::pa
         }
         break;
     }
-    return path;
-}
+    if (path.empty()) {
+        // Log this event or handle it appropriately
+        std::cerr << "Warning: Empty path returned for src: (" << src.first << "," << src.second 
+                  << ") to dst: (" << dst.first << "," << dst.second << ")" << std::endl;
+    }
+    return path;}
 
 bool Explorer::hasMoreDirtyAreas() const {
     for (const auto& area : mapped_areas_) {
@@ -261,4 +271,113 @@ std::vector<std::pair<int, int>> Explorer::getNeighbors(std::pair<int, int> poin
         }
     }
     return neighbors;
+}
+/*std::stack<Direction> Explorer::findPathToDock(const Position& start, const Position& dock) {
+    std::cout << "Finding path to dock from (" << start.r << "," << start.c 
+              << ") to (" << dock.r << "," << dock.c << ")" << std::endl;
+
+    std::queue<Position> q;
+    std::map<Position, Position> parent;
+    std::map<Position, bool> visited;
+
+    q.push(start);
+    visited[start] = true;
+
+    while (!q.empty()) {
+        Position current = q.front();
+        q.pop();
+
+        if (current == dock) {
+            return reconstructPath(parent, current, start);
+        }
+
+        std::vector<std::pair<int, int>> neighbors = {
+            {current.r-1, current.c}, {current.r+1, current.c},
+            {current.r, current.c-1}, {current.r, current.c+1}
+        };
+
+        for (const auto& [r, c] : neighbors) {
+            Position next{r, c};
+            if (visited[next]) continue;
+
+            // Check if the position is within the known map or unexplored
+            if (mapped_areas_.count(next) || unexplored_areas_.count(next)) {
+                // If it's mapped, make sure it's not a wall
+                if (mapped_areas_.count(next) == 0 || !isWall(next)) {
+                    q.push(next);
+                    visited[next] = true;
+                    parent[next] = current;
+                }
+            }
+        }
+    }
+
+    std::cout << "No path found to dock" << std::endl;
+    return std::stack<Direction>();
+}
+
+std::stack<Direction> Explorer::findPathToDock(const Position& start, const Position& dock) {
+    std::cout << "Finding path to dock from (" << start.r << "," << start.c 
+              << ") to (" << dock.r << "," << dock.c << ")" << std::endl;
+
+    std::queue<Position> q;
+    std::map<Position, Position> parent;
+    std::set<Position> visited;
+
+    q.push(start);
+    visited.insert(start);
+
+    while (!q.empty()) {
+        Position current = q.front();
+        q.pop();
+
+        if (current == dock) {
+            return reconstructPath(parent, current, start);
+        }
+
+        std::vector<std::pair<int, int>> neighbors = {
+            {current.r-1, current.c}, {current.r+1, current.c},
+            {current.r, current.c-1}, {current.r, current.c+1}
+        };
+
+        for (const auto& [r, c] : neighbors) {
+            Position next{r, c};
+            if (visited.count(next)) continue;
+
+            // Check if the position is within the known map or unexplored
+            if (mapped_areas_.count(next) || unexplored_areas_.count(next)) {
+                // If it's mapped, make sure it's not a wall
+                if (mapped_areas_.count(next) == 0 || !isWall(next)) {
+                    q.push(next);
+                    visited.insert(next);
+                    parent[next] = current;
+                }
+            }
+        }
+    }
+
+    std::cout << "No path found to dock" << std::endl;
+    return std::stack<Direction>();
+}
+std::stack<Direction> Explorer::reconstructPath(const std::map<Position, Position>& parent, Position current, Position start) {
+    std::stack<Direction> path;
+    while (current != start) {
+        Position prev = parent.at(current);
+        path.push(PositionUtils::findDirection(prev, current));
+        current = prev;
+    }
+    return path;
+}*/
+Position Explorer::getClosestUnexploredArea(Position position) {
+    int Dist = 0;
+    int min = INT_MAX;
+    Position pos = {-20, -20};
+    for (const auto& area : unexplored_areas_) {
+        Dist = getShortestPath_A({position.r, position.c}, {area.first.r, area.first.c}, false).size();
+        if (Dist < min) {
+            min = Dist;
+            pos = area.first;
+        }
+    }
+    return pos;
 }
