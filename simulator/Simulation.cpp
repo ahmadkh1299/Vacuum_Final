@@ -1,205 +1,559 @@
 #include "Simulation.h"
-#include "ConfigReader.h"
-#include <iostream>
-#include <fstream>
+
+#include "SensorImpl.h"
+
+#include "Vacuum.h"
+
 #include <filesystem>
+
+#include <fstream>
+
+#include <iostream>
+
+#include <thread>
+
+#include <future>
+
 #include <chrono>
-#include <pthread.h>
+
+#include <climits>
+
+#include <fstream>
+
+#include <vector>
+
+#include <algorithm>
+
+
 
 namespace fs = std::filesystem;
 
-Simulation::Simulation(int numThreads) 
-    : numThreads(numThreads), work(std::make_unique<boost::asio::io_context::work>(ioContext)) {
-    for (int i = 0; i < numThreads; ++i) {
-        threadPool.emplace_back([this] { ioContext.run(); });
-    }
-}
 
-Simulation::~Simulation() {
-    work.reset();
-    ioContext.stop();
-    for (auto& thread : threadPool) {
-        thread.join();
-    }
-}
 
-void Simulation::loadHouses(const std::string& housePath) {
-    for (const auto& entry : fs::directory_iterator(housePath)) {
-        if (entry.path().extension() == ".house") {
-            try {
-                ConfigReader config(entry.path().string());
-                tasks.emplace_back(SimulationTask{
-                    std::make_unique<House>(config.getLayout(), config.getHouseName()),
-                    nullptr,
-                    "",
-                    config.getMaxSteps(),
-                    0,
-                    false
-                });
-            } catch (const std::exception& e) {
-                std::cerr << "Error loading house file " << entry.path() << ": " << e.what() << std::endl;
+Simulation::Simulation(std::vector<std::unique_ptr<House>> houses, std::vector<int> maxSteps, std::vector<int> maxBatteries)
+
+    : houses(std::move(houses)), maxSteps(std::move(maxSteps)), maxBatteries(std::move(maxBatteries)) {}
+
+
+
+void Simulation::runSimulations(const std::vector<std::pair<std::string, std::function<std::unique_ptr<AbstractAlgorithm>()>>>& algorithms, int numThreads, bool summaryOnly) {
+
+    std::vector<std::thread> threads;
+
+    std::atomic<size_t> houseIndex(0);
+
+
+
+    auto worker = [this, &algorithms, &houseIndex, summaryOnly]() {
+
+        while (true) {
+
+            size_t index = houseIndex.fetch_add(1);
+
+            if (index >= houses.size()) break;
+
+
+
+            for (const auto& [algoName, algoFactory] : algorithms) {
+
+                runSingleSimulation(*houses[index], algoFactory(), algoName, 
+
+                                    maxSteps[index], maxBatteries[index], summaryOnly);
+
             }
-        }
-    }
-}
 
-void Simulation::runSimulations(const AlgorithmRegistrar& registrar) {
-    taskCount = tasks.size() * registrar.count();
-
-    for (auto& task : tasks) {
-        for (const auto& algo : registrar) {
-            task.algorithm = algo.create();
-            task.algoName = algo.name();
-            boost::asio::post(ioContext, [this, &task] { runSimulationTask(task); });
         }
+
+    };
+
+
+
+    for (int i = 0; i < numThreads; ++i) {
+
+        threads.emplace_back(worker);
+
     }
 
-    // Wait for all tasks to complete
-    std::unique_lock<std::mutex> lock(countMutex);
-    countCV.wait(lock, [this] { return taskCount == 0; });
+
+
+    for (auto& thread : threads) {
+
+        thread.join();
+
+    }
+
 }
 
-void Simulation::runSimulationTask(SimulationTask& task) {
-    pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, nullptr);
-    pthread_setcanceltype(PTHREAD_CANCEL_ASYNCHRONOUS, nullptr);
 
-    boost::asio::steady_timer timer(ioContext, std::chrono::milliseconds(task.maxSteps));
-    auto start = std::chrono::system_clock::now();
-    auto threadHandler = pthread_self();
 
-    timer.async_wait([this, &task, start, threadHandler](const boost::system::error_code& ec) {
-        this->timerHandler(ec, task, start, threadHandler);
-    });
+void Simulation::runSingleSimulation(const House& house, std::unique_ptr<AbstractAlgorithm> algo, 
 
-    // Run the simulation
-    task.algorithm->setMaxSteps(task.maxSteps);
-    // Set up sensors and run the algorithm...
+                                     const std::string& algoName, int maxSteps, int maxBattery, bool summaryOnly) {
 
-    int steps = 0;
-    int dirtLeft = task.house->getTotalDirt();
-    bool inDock = true;
-    std::string stepsString;
+    House simHouse = house; // Create a copy of the house for this simulation
 
-    while (steps < task.maxSteps && !task.finished) {
-        Step step = task.algorithm->nextStep();
-        stepsString += stepToString(step);
+    int initialDirt = simHouse.getTotalDirt();
 
-        // Process the step, update house state, etc.
-        // Update dirtLeft and inDock based on the step
+
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    auto result = simulateAlgorithm(simHouse, *algo, maxSteps, maxBattery);
+
+    auto end = std::chrono::high_resolution_clock::now();
+
+
+
+    std::chrono::duration<double, std::milli> elapsed = end - start;
+
+    if (elapsed > std::chrono::milliseconds(maxSteps)) {
+
+        result.steps = maxSteps;
+
+        result.finished = false;
+
+        result.dirtLeft = initialDirt;
+
+        result.inDock = false;
+
+    }
+
+
+
+    result.score = calculateScore(result, maxSteps, initialDirt);
+
+
+
+    {
+
+        std::lock_guard<std::mutex> lock(scoresMutex);
+
+        scores[{house.getName(), algoName}] = result.score;
+
+    }
+
+
+
+    if (!summaryOnly) {
+
+        writeOutputFile(house.getName(), algoName, result);
+
+    }
+
+}
+
+
+
+Simulation::SimulationResult Simulation::simulateAlgorithm(House& house, AbstractAlgorithm& algo, 
+
+                                                           int maxSteps, int maxBattery) {
+
+    SimulationResult result{};
+
+    result.dirtLeft = house.getTotalDirt();
+
+    result.inDock = true;
+
+
+
+    Vacuum vacuum;
+
+    vacuum.init(maxBattery, house.getDockingStation());
+
+    SensorImpl sensor(house, maxBattery);
+
+
+
+    algo.setMaxSteps(maxSteps);
+
+    algo.setWallsSensor(sensor);
+
+    algo.setDirtSensor(sensor);
+
+    algo.setBatteryMeter(sensor);
+
+
+
+    Step step;
+
+
+
+    while (result.steps < maxSteps && !result.finished) {
+
+        if(house.isHouseClean() && result.inDock) {
+
+            result.finished = true;
+
+            result.stepsString+= stepToString(Step::Finish);
+
+            std::cout << "House is clean, simulation finished" << std::endl;
+
+            break;
+
+        }
+
+        step = algo.nextStep();
+
+        result.stepsString += stepToString(step);
+
+
+
+        vacuum.step(step);
+
+        sensor.updatePosition(step);
+
+        result.inDock = vacuum.atDockingStation();
+
+
+
+        Position currentPos = vacuum.getPosition();
+
+        std::cout << "currentPos: " << currentPos.r << ", " << currentPos.c << std::endl;
+
+        if (step == Step::Stay) {
+
+            if (house.getDirtLevel(currentPos) > 0) {
+
+                house.cleanCell(currentPos);
+
+                sensor.useBattery();
+
+                result.dirtLeft = house.getTotalDirt();
+
+            }
+
+            if (result.inDock) {
+
+                sensor.chargeBattery();
+
+                vacuum.setBattery(sensor.getBatteryState());
+
+            }
+
+        }
+
+        if (step !=Step::Stay && !result.inDock) {
+
+            sensor.useBattery();
+
+        }
+
+
 
         if (step == Step::Finish) {
-            task.finished = true;
+
+            result.finished = true;
+
         }
-        steps++;
+
+
+
+        result.steps++;
+
     }
 
-    timer.cancel();
+    if(result.inDock && step == Step::Finish)
 
-    if (!task.finished.exchange(true)) {
-        int score = calculateScore(steps, dirtLeft, task.finished, inDock, task.maxSteps);
-        task.score = score;
-        writeOutputFile(task.house->getName(), task.algoName, steps, dirtLeft, task.finished, inDock, score, stepsString);
-    }
-
-    // Decrement task count and notify
     {
-        std::lock_guard<std::mutex> lock(countMutex);
-        taskCount--;
+
+        result.stepsString += stepToString(Step::Finish);
+
     }
-    countCV.notify_one();
+
+    return result;
+
 }
 
-void Simulation::timerHandler(const boost::system::error_code& ec, SimulationTask& task, 
-                              std::chrono::system_clock::time_point start, pthread_t threadHandler) {
-    if (ec == boost::asio::error::operation_aborted) {
-        std::cout << "Timer for task " << task.house->getName() << " - " << task.algoName << " was canceled" << std::endl;
-    } else if (!ec) {
-        auto now = std::chrono::system_clock::now();
-        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(now - start);
-        std::cout << "Timer for task " << task.house->getName() << " - " << task.algoName 
-                  << " expired after " << duration.count() << "ms" << std::endl;
 
-        if (!task.finished.exchange(true)) {
-            int score = task.maxSteps * 2 + task.house->getTotalDirt() * 300 + 2000;
-            task.score = score;
-            writeOutputFile(task.house->getName(), task.algoName, task.maxSteps, task.house->getTotalDirt(), 
-                            false, false, score, "");
-            pthread_cancel(threadHandler);
-        }
 
-        // Decrement task count and notify
-        {
-            std::lock_guard<std::mutex> lock(countMutex);
-            taskCount--;
-        }
-        countCV.notify_one();
-    }
-}
+int Simulation::calculateScore(const SimulationResult& result, int maxSteps, int initialDirt) const {
 
-void Simulation::generateSummary() const {
-    std::ofstream summaryFile("summary.csv");
-    if (!summaryFile.is_open()) {
-        std::cerr << "Error: Could not create summary.csv" << std::endl;
-        return;
-    }
+    if (result.steps >= maxSteps) {
 
-    summaryFile << "Algorithm/House";
-    for (const auto& task : tasks) {
-        summaryFile << "," << task.house->getName();
-    }
-    summaryFile << "\n";
+        return maxSteps * 2 + initialDirt * 300 + 2000;
 
-    std::lock_guard<std::mutex> lock(scoreMutex);
-    for (const auto& algo : AlgorithmRegistrar::getAlgorithmRegistrar()) {
-        summaryFile << algo.name();
-        for (const auto& task : tasks) {
-            auto it = std::find_if(tasks.begin(), tasks.end(), [&](const SimulationTask& t) {
-                return t.house->getName() == task.house->getName() && t.algoName == algo.name();
-            });
-            if (it != tasks.end()) {
-                summaryFile << "," << it->score.load();
-            } else {
-                summaryFile << ",N/A";
-            }
-        }
-        summaryFile << "\n";
-    }
+    } else if (result.finished && !result.inDock) {
 
-    summaryFile.close();
-    std::cout << "Summary written to summary.csv" << std::endl;
-}
+        return maxSteps + result.dirtLeft * 300 + 3000;
 
-void Simulation::writeOutputFile(const std::string& houseName, const std::string& algoName,
-                                 int numSteps, int dirtLeft, bool finished, bool inDock, 
-                                 int score, const std::string& steps) const {
-    std::string filename = houseName + "-" + algoName + ".txt";
-    std::ofstream outFile(filename);
-    outFile << "NumSteps = " << numSteps << std::endl;
-    outFile << "DirtLeft = " << dirtLeft << std::endl;
-    outFile << "Status = " << (finished ? "FINISHED" : (numSteps >= 1000 ? "WORKING" : "DEAD")) << std::endl;
-    outFile << "InDock = " << (inDock ? "TRUE" : "FALSE") << std::endl;
-    outFile << "Score = " << score << std::endl;
-    outFile << "Steps:\n" << steps << std::endl;
-}
-
-int Simulation::calculateScore(int steps, int dirtLeft, bool finished, bool inDock, int maxSteps) const {
-    if (steps >= maxSteps) {
-        return maxSteps * 2 + dirtLeft * 300 + 2000;
-    } else if (finished && !inDock) {
-        return maxSteps + dirtLeft * 300 + 3000;
     } else {
-        return steps + dirtLeft * 300 + (inDock ? 0 : 1000);
+
+        return result.steps + result.dirtLeft * 300 + (result.inDock ? 0 : 1000);
+
     }
+
 }
+
+
+
+void Simulation::writeOutputFile(const std::string& houseName, const std::string& algoName, 
+
+                                 const SimulationResult& result) const {
+
+    std::string filename = houseName + "-" + algoName + ".txt";
+
+    std::ofstream outFile(filename);
+
+    outFile << "NumSteps = " << result.steps << std::endl;
+
+    outFile << "DirtLeft = " << result.dirtLeft << std::endl;
+
+    outFile << "Status = " << (result.finished ? "FINISHED" : (result.steps >= 1000 ? "WORKING" : "DEAD")) << std::endl;
+
+    outFile << "InDock = " << (result.inDock ? "TRUE" : "FALSE") << std::endl;
+
+    outFile << "Score = " << result.score << std::endl;
+
+    outFile << "Steps:\n" << result.stepsString << std::endl;
+
+}
+
+
 
 std::string Simulation::stepToString(Step step) {
+
     switch (step) {
+
         case Step::North: return "N";
+
         case Step::South: return "S";
+
         case Step::East: return "E";
+
         case Step::West: return "W";
+
         case Step::Stay: return "s";
+
         case Step::Finish: return "F";
+
         default: return "?";
+
     }
+
+}
+
+/*
+
+void Simulation::generateSummary() const {
+
+    std::cout << "Starting generateSummary()" << std::endl;
+
+    
+
+    try {
+
+        std::ofstream summaryFile("summary.csv");
+
+        if (!summaryFile.is_open()) {
+
+            throw std::runtime_error("Failed to open summary.csv for writing");
+
+        }
+
+
+
+        std::cout << "Writing header" << std::endl;
+
+        summaryFile << "Algorithm";
+
+        for (const auto& house : houses) {
+
+            if (house) {
+
+                summaryFile << "," << house->getName();
+
+            } else {
+
+                std::cout << "Warning: Null house pointer encountered" << std::endl;
+
+            }
+
+        }
+
+        summaryFile << std::endl;
+
+
+
+        std::cout << "Number of houses: " << houses.size() << std::endl;
+
+        std::cout << "Number of scores: " << scores.size() << std::endl;
+
+
+
+        if (scores.empty()) {
+
+            std::cout << "Warning: scores map is empty" << std::endl;
+
+        }
+
+
+
+        for (const auto& [key, value] : scores) {
+
+            std::cout << "Algorithm: " << key.second << ", House: " << key.first << ", Score: " << value << std::endl;
+
+        }
+
+
+
+        std::cout << "Writing data for each algorithm" << std::endl;
+
+        for (const auto& [key, _] : scores) {
+
+            const auto& algoName = key.second;
+
+            summaryFile << algoName;
+
+            for (const auto& house : houses) {
+
+                if (house) {
+
+                    auto it = scores.find({house->getName(), algoName});
+
+                    if (it != scores.end()) {
+
+                        summaryFile << "," << it->second;
+
+                    } else {
+
+                        summaryFile << ",N/A";
+
+                    }
+
+                } else {
+
+                    summaryFile << ",ERROR";
+
+                }
+
+            }
+
+            summaryFile << std::endl;
+
+        }
+
+
+
+        summaryFile.close();
+
+        std::cout << "Finished generateSummary()" << std::endl;
+
+    } catch (const std::exception& e) {
+
+        std::cerr << "Exception in generateSummary(): " << e.what() << std::endl;
+
+    } catch (...) {
+
+        std::cerr << "Unknown exception in generateSummary()" << std::endl;
+
+    }
+
+}*/
+
+void Simulation::generateSummary() const {
+
+    std::cout << "Starting generateSummary()" << std::endl;
+
+    
+
+    try {
+
+        std::ofstream summaryFile("summary.csv");
+
+        if (!summaryFile.is_open()) {
+
+            throw std::runtime_error("Failed to open summary.csv for writing");
+
+        }
+
+
+
+        // Write header
+
+        summaryFile << "Algorithm";
+
+        for (const auto& house : houses) {
+
+            if (house) {
+
+                summaryFile << "," << house->getName();
+
+            } else {
+
+                summaryFile << ",Unknown House";
+
+            }
+
+        }
+
+        summaryFile << std::endl;
+
+
+
+        // Get unique algorithm names
+
+        std::vector<std::string> uniqueAlgos;
+
+        for (const auto& [key, _] : scores) {
+
+            if (std::find(uniqueAlgos.begin(), uniqueAlgos.end(), key.second) == uniqueAlgos.end()) {
+
+                uniqueAlgos.push_back(key.second);
+
+            }
+
+        }
+
+
+
+        // Write data for each unique algorithm
+
+        for (const auto& algoName : uniqueAlgos) {
+
+            summaryFile << algoName;
+
+            for (const auto& house : houses) {
+
+                if (house) {
+
+                    auto it = scores.find({house->getName(), algoName});
+
+                    if (it != scores.end()) {
+
+                        summaryFile << "," << it->second;
+
+                    } else {
+
+                        summaryFile << ",N/A";
+
+                    }
+
+                } else {
+
+                    summaryFile << ",ERROR";
+
+                }
+
+            }
+
+            summaryFile << std::endl;
+
+        }
+
+
+
+        summaryFile.close();
+
+        std::cout << "Finished generateSummary()" << std::endl;
+
+    } catch (const std::exception& e) {
+
+        std::cerr << "Exception in generateSummary(): " << e.what() << std::endl;
+
+    } catch (...) {
+
+        std::cerr << "Unknown exception in generateSummary()" << std::endl;
+
+    }
+
 }
