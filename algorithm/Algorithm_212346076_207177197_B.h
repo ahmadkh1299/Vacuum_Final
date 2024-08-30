@@ -1,42 +1,48 @@
-#ifndef HW3_SKELETON_ALGORITHM_212346076_207177197_B_H
-#define HW3_SKELETON_ALGORITHM_212346076_207177197_B_H
+#ifndef ALGORITHM_212346076_207177197_B_H
+#define ALGORITHM_212346076_207177197_B_H
 
-#include "../simulator/Explorer.h"
 #include "../common/AbstractAlgorithm.h"
 #include "../common/SensorImpl.h"
-#include "../common/states.h"
-#include <climits>
-#include <iostream>
-#include <queue>
+#include "../simulator/Explorer.h"
+#include "../common/PositionUtils.h"
+#include <stack>
 
 class Algorithm_212346076_207177197_B : public AbstractAlgorithm {
 public:
     Algorithm_212346076_207177197_B();
-    virtual ~Algorithm_212346076_207177197_B() = default;
+    ~Algorithm_212346076_207177197_B() = default;
+
     void setMaxSteps(std::size_t maxSteps) override;
-    void setWallsSensor(const WallsSensor &) override;
-    void setDirtSensor(const DirtSensor &) override;
-    void setBatteryMeter(const BatteryMeter &) override;
+    void setWallsSensor(const WallsSensor&) override;
+    void setDirtSensor(const DirtSensor&) override;
+    void setBatteryMeter(const BatteryMeter&) override;
     Step nextStep() override;
-    bool StateChanged() const;
-    State getCurrentState() const;
+
     void setSensors(SensorImpl &sensors);
 
 private:
-    int max_steps_;
-    int steps_counter = 0;
     SensorImpl* sensors_;
-    std::queue<Position> bfs_queue;
     Explorer explorer_;
-    State prev_state;
-    State curr_state;
-    Position docking_station = {0, 0};
-    std::pair<int,int> last_dirty_pos_ = {-20, -20};
+    std::size_t steps_;
+    std::size_t max_steps_;
+    std::size_t max_battery_;
+    Position current_position_;
+    State current_state_;
+    std::stack<Direction> path_to_dock_;
 
-    void updateExplorerInfo(Position current_position_);
-    int getMinDistanceOfNeighbors(const Position& curr_pos);
-    void updatePosition(Step stepDirection, Position& curr_pos);
-    std::string stateToString(State state);
+    Position DOCK_POS = {0, 0};
+
+    bool shouldFinish();
+    void updateExplorerInfo();
+    bool shouldReturnToDock();
+    void initializeReturnToDock();
+    Step moveAlongPath();
+    Step exploreAndClean();
+    Step cleanCurrentPosition();
+    Step handleCharging();
+    Position findNextDirtyOrUnexplored();
+    bool isHouseClean();
+    int calculateDistanceFromDock();
 };
 
-#endif //HW3_SKELETON_ALGORITHM_212346076_207177197_B_H
+#endif // ALGORITHM_212346076_207177197_B_H
